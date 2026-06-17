@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🦞 龙虾工坊 · 6 Agent 训练看板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#15233a; --ink2:#1f3350; --inkd:#0E1A2B;
+  --lob:#C1121F; --lob2:#E63946; --gold:#E8A33D; --flame:#E8730C;
+  --cream:#F7F3EC; --paper:#FFFFFF; --line:#E6DCC6; --line2:#F0E8D6;
+  --text:#2c3a52; --text2:#475569; --muted:#8a96ab; --green:#2f8a4a;
+  --tint:#FFF6EC; --tint2:#F0F7F0; --tint3:#EEF2FA;
+  --grey-bg:#EFECE5;
+  --font-d:"Fraunces","Noto Serif SC",serif;
+  --font-zh:"Noto Serif SC",serif;
+  --font-b:"Noto Sans SC",-apple-system,"Segoe UI",sans-serif;
+  --shadow:0 1px 2px rgba(20,35,58,.04),0 4px 16px rgba(20,35,58,.05);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-b);color:var(--text);background:var(--cream);line-height:1.65;font-size:15px;display:flex}
+h1,h2,h3,h4{font-family:var(--font-zh);color:var(--ink);margin:0;line-height:1.35;font-weight:700}
+a{color:inherit}
+::selection{background:rgba(193,18,31,.15)}
+
+.sidebar{width:268px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--inkd);color:#aeb9cd;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.06)}
+.sidebar::-webkit-scrollbar{width:5px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.sb-brand{padding:18px 18px 14px}
+.sb-brand .logo{display:flex;align-items:center;gap:10px}
+.sb-brand .d{width:32px;height:32px;border-radius:9px;background:var(--lob);display:grid;place-items:center;font-size:17px;flex-shrink:0}
+.sb-brand .tt{font-family:var(--font-d);font-weight:800;color:#fff;font-size:16px;line-height:1.25}
+.sb-brand .tt .red{color:var(--lob2)}
+.sb-brand .en{font-family:var(--font-d);font-size:9.5px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-top:1px}
+
+.sb-team{margin:4px 14px 12px;padding:13px;background:rgba(255,255,255,.04);border:1px solid rgba(232,163,61,.18);border-radius:11px;cursor:pointer;transition:.15s}
+.sb-team:hover{background:rgba(255,255,255,.08)}
+.sb-team .row{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:#92a0b8}
+.sb-team .big{font-family:var(--font-d);font-weight:800;color:#fff;font-size:20px}
+.sb-team .green{color:#6dd47e}
+.sb-team .bar{height:5px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:7px}
+.sb-team .bar>div{height:100%;background:linear-gradient(90deg,var(--lob),var(--flame),var(--gold));transition:width .5s;border-radius:99px}
+
+.sb-nav{flex:1;padding:0 10px 8px}
+.sb-grp{margin:4px 0 10px}
+.sb-grp-t{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--gold);opacity:.65;padding:7px 10px 5px;text-transform:uppercase;font-family:var(--font-d)}
+.sb-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;transition:.12s;position:relative;text-decoration:none;color:#aeb9cd}
+.sb-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.sb-item.active{background:rgba(193,18,31,.2);color:#fff}
+.sb-item.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--lob2);border-radius:0 3px 3px 0}
+.sb-item .em{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.sb-item .nm{font-size:12.5px;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-item .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(255,255,255,.22)}
+.sb-item .dot.none{background:transparent}
+.sb-item .dot.training{background:var(--flame);border-color:var(--flame)}
+.sb-item .dot.launched{background:#5fd36a;border-color:#5fd36a}
+.sb-item .mini{width:30px;flex-shrink:0}
+.sb-item .mini .mb{height:3px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+.sb-item .mini .mb>div{height:100%;background:var(--gold);transition:width .4s}
+.sb-item .mini .mp{font-family:var(--font-d);font-size:9px;color:#92a0b8;text-align:right;line-height:1.3}
+
+.sb-foot{padding:8px 14px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px}
+.sb-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#aeb9cd;padding:7px 11px;border-radius:7px;font-family:var(--font-b);font-size:12px;cursor:pointer;text-align:left;transition:.15s}
+.sb-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:var(--gold)}
+.sb-warn{font-size:10px;color:#6c7a93;line-height:1.5;padding:6px 3px 0}
+
+.main{flex:1;min-width:0}
+.mainbar{position:sticky;top:0;z-index:30;background:rgba(247,243,236,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.crumb{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex:1;min-width:0;flex-wrap:wrap}
+.crumb a{cursor:pointer}
+.crumb a:hover{color:var(--lob)}
+.crumb b{color:var(--ink);font-family:var(--font-zh);font-weight:700}
+.crumb .sep{color:var(--line);font-size:11px}
+.crumb .id{font-family:var(--font-d);color:var(--lob);font-size:11.5px}
+.navbtn{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:5px 11px;font-family:var(--font-b);font-size:12px;cursor:pointer;color:var(--text2);transition:.15s}
+.navbtn:hover:not(:disabled){border-color:var(--lob);color:var(--lob);box-shadow:var(--shadow)}
+.navbtn:disabled{opacity:.35;cursor:not-allowed}
+.menu-toggle{display:none}
+
+.main-inner{max-width:880px;margin:0 auto;padding:24px 28px 80px}
+.view{display:none}
+.view.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.hero{background:linear-gradient(135deg,#15233a,#223a5c);color:#F4EDE4;border-radius:16px;padding:26px 28px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow)}
+.hero::before{content:"🦞";position:absolute;font-size:200px;right:-20px;top:-50px;opacity:.06;line-height:1;transform:rotate(-12deg);pointer-events:none}
+.hero .brand{font-family:var(--font-d);letter-spacing:.14em;font-size:10.5px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;position:relative}
+.hero h1{font-family:var(--font-zh);font-weight:900;color:#fff;font-size:clamp(24px,3.6vw,34px);position:relative}
+.hero h1 .red{color:var(--lob2)}
+.hero .lead{font-size:13.5px;color:#b9c4d6;margin-top:10px;max-width:580px;position:relative}
+.hero .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;position:relative}
+.hero .pill{background:rgba(255,255,255,.07);border:1px solid rgba(232,163,61,.25);padding:4px 11px;border-radius:99px;font-size:11px}
+.hero .pill b{color:var(--gold);font-weight:500}
+
+.shrimp-hero{display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:relative}
+.shrimp-hero .em{font-size:46px;line-height:1}
+.shrimp-hero .meta{flex:1;min-width:180px}
+.shrimp-hero .meta h2{color:#fff;font-size:22px;margin:0}
+.shrimp-hero .meta .sub{font-size:12px;color:#9fb0c8;margin-top:3px}
+.shrimp-hero .meta .sub .id{font-family:var(--font-d);color:var(--gold)}
+.shrimp-hero .ringL{width:64px;height:64px;flex-shrink:0}
+.shrimp-hero .ringL svg{transform:rotate(-90deg)}
+.shrimp-hero .ringL .pct{font-family:var(--font-d);font-weight:800;font-size:16px;fill:#fff}
+.shrimp-hero .status{font-size:11.5px;font-weight:600;padding:4px 11px;border-radius:99px;display:inline-block;margin-top:7px}
+.shrimp-hero .status.launched{background:rgba(95,211,106,.16);color:#7dd08a;border:1px solid rgba(95,211,106,.35)}
+.shrimp-hero .status.training{background:rgba(232,115,12,.16);color:#ffb866;border:1px solid rgba(232,115,12,.35)}
+.shrimp-hero .status.none{background:rgba(255,255,255,.07);color:#9fb0c8;border:1px solid rgba(255,255,255,.18)}
+
+.goals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px}
+.goal{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+.goal .gl{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-family:var(--font-d);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.goal .gv{font-size:13.5px;color:var(--text)}
+.goal.end .gv{color:var(--green);font-weight:600}
+.goal.end{border-left:3px solid var(--green)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px;text-align:center;box-shadow:var(--shadow)}
+.stat .lab{font-size:11px;color:var(--muted)}
+.stat .num{font-family:var(--font-d);font-weight:800;font-size:28px;color:var(--ink);line-height:1.1;margin:2px 0}
+.stat .bar{height:6px;background:var(--grey-bg);border-radius:99px;overflow:hidden;margin-top:5px}
+.stat .bar>div{height:100%;background:linear-gradient(90deg,var(--lob),var(--flame));transition:width .5s;border-radius:99px}
+.stat.acc .num{color:var(--green)}
+.stat.acc .bar>div{background:linear-gradient(90deg,#2f8a4a,#6cb46e)}
+
+.section-title{font-size:16px;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+.section-title .hint{font-size:11.5px;color:var(--muted);font-weight:400;font-family:var(--font-b)}
+.tl{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.tl-track{display:flex;gap:0;position:relative}
+.tl-step{flex:1;text-align:center;position:relative;padding-top:28px;font-size:10.5px;color:var(--muted);min-width:0}
+.tl-step::before{content:"";position:absolute;top:7px;left:50%;width:13px;height:13px;border-radius:50%;background:var(--paper);border:3px solid var(--line);transform:translateX(-50%);z-index:2}
+.tl-step:nth-child(5)::before{border-color:var(--lob)}
+.tl-step:not(:last-child)::after{content:"";position:absolute;top:13px;left:50%;right:-50%;height:2px;background:var(--line);z-index:1}
+.tl-step .wk{font-family:var(--font-d);font-weight:700;color:var(--ink);font-size:11.5px;display:block;margin-bottom:2px}
+.tl-step .ph{color:var(--text2);font-weight:600;font-size:11.5px}
+
+.matrix{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin:0;overflow:hidden;box-shadow:var(--shadow)}
+.mx-grp-h{background:var(--tint);padding:10px 16px;font-size:13px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.mx-grp-h .dsc{font-weight:400;color:var(--muted);font-size:11.5px}
+.mx-grp-h .cnt{margin-left:auto;font-size:11px;color:var(--muted);font-weight:400}
+.mx-row{display:grid;grid-template-columns:1fr auto 96px auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:.12s}
+.mx-row:last-child{border-bottom:none}
+.mx-row:hover{background:var(--tint)}
+.mx-row .nm{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--ink);font-size:13.5px}
+.mx-row .nm .em{font-size:16px}
+.mx-row .nm .id{font-family:var(--font-d);color:var(--lob);font-size:11px}
+.mx-row .ph{font-size:11px;color:var(--muted);font-family:var(--font-d)}
+.mx-row .pbar{width:96px;height:7px;background:var(--grey-bg);border-radius:99px;overflow:hidden}
+.mx-row .pbar>div{height:100%;background:linear-gradient(90deg,var(--lob),var(--flame));transition:width .4s;border-radius:99px}
+.mx-row .rt{display:flex;align-items:center;gap:9px}
+.mx-row .pct{font-family:var(--font-d);font-weight:700;font-size:12px;color:var(--ink);width:32px;text-align:right}
+.mx-row .badge{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.mx-row .badge.launched{background:#D6ECD0;color:#2d6b35}
+.mx-row .badge.training{background:#FCEFC7;color:#8a5a14}
+.mx-row .badge.none{background:var(--grey-bg);color:var(--muted)}
+
+.flow{position:relative;margin-top:6px}
+.step{position:relative;padding-left:46px;margin-bottom:4px}
+.step:not(:last-child){margin-bottom:18px}
+.step-badge{position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--font-d);font-weight:800;font-size:15px;z-index:2;box-shadow:0 0 0 4px var(--cream)}
+.step.cur .step-badge{background:var(--lob)}
+.step:not(:last-child)::before{content:"";position:absolute;left:15px;top:34px;bottom:-14px;width:2px;background:linear-gradient(180deg,var(--line),transparent);z-index:1}
+.step-head{display:flex;align-items:baseline;gap:9px;margin-bottom:3px;flex-wrap:wrap}
+.step-head .st-t{font-size:15px;font-weight:700;color:var(--ink)}
+.step-head .st-m{font-size:12px;color:var(--muted)}
+.step-head .st-d{margin-left:auto;font-family:var(--font-d);font-size:11px;color:var(--lob);background:var(--tint);padding:2px 9px;border-radius:99px;font-weight:600}
+
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;margin:6px 0 0;padding:16px 18px;box-shadow:var(--shadow)}
+.value-box{background:var(--tint);border:1px solid #f0dcb8;border-radius:10px;padding:11px 13px;font-size:13px;color:#5a3a14;margin:10px 0}
+.value-box b{color:var(--lob)}
+.value-box.gate{background:var(--tint2);border-color:#bfe0c2;color:#1f5a28}
+.value-box.gate b{color:var(--green)}
+.sec-h{font-size:11.5px;font-weight:700;color:var(--text2);margin:14px 0 7px;display:flex;align-items:center;gap:6px;letter-spacing:.02em}
+.sec-h:first-child{margin-top:4px}
+.sec-h .cnt{color:var(--muted);font-weight:400;font-size:11px}
+
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:6px 0;font-size:13.5px;display:flex;gap:9px;align-items:flex-start;border-bottom:1px solid var(--line2)}
+.list li:last-child{border-bottom:none}
+.chk{width:18px;height:18px;border:2px solid #cab99c;border-radius:5px;flex-shrink:0;cursor:pointer;margin-top:1px;position:relative;transition:.15s;background:var(--paper)}
+.chk:hover{border-color:var(--lob)}
+.chk.done{background:var(--green);border-color:var(--green)}
+.chk.done::after{content:"✓";position:absolute;inset:0;color:#fff;font-size:12px;display:grid;place-items:center;font-weight:700}
+.list li.done .txt{color:var(--muted);text-decoration:line-through}
+.eval .ev-tag{background:var(--tint3);color:#3a5a8c;font-size:10px;padding:1px 7px;border-radius:99px;margin-right:6px;font-weight:600;white-space:nowrap;flex-shrink:0}
+
+.stages{display:grid;gap:8px}
+.stage{background:var(--cream);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stage.sh{display:flex;align-items:center;gap:9px;padding:10px 13px;cursor:pointer;transition:.12s}
+.stage.sh:hover{background:var(--tint)}
+.stage.sh .sem{font-size:17px}
+.stage.sh .snm{font-weight:700;color:var(--ink);font-size:13.5px}
+.stage.sh .sdur{font-size:11px;color:var(--muted);margin-left:auto;font-family:var(--font-d)}
+.stage.sh .slvl{background:var(--ink);color:var(--gold);font-size:10px;padding:1px 8px;border-radius:99px;font-weight:600}
+.stage.sh .slvl.lvl3{background:var(--lob);color:#fff}
+.stage.sh .arw{color:var(--muted);font-size:10px;transition:.2s}
+.stage.open .sh .arw{transform:rotate(90deg)}
+.stage .body{display:none;padding:4px 13px 12px;border-top:1px dashed var(--line)}
+.stage.open .body{display:block}
+.stage .sub{font-size:11px;font-weight:700;color:#8a5a14;margin:9px 0 3px}
+
+.wall{margin:6px 0}
+.wall-row{display:grid;grid-template-columns:1fr 120px 110px;gap:8px;align-items:center;padding:7px 9px;border-bottom:1px solid var(--line2);font-size:12.5px}
+.wall-row.head{background:var(--ink);color:#fff;font-size:11px;border-radius:8px;font-weight:600}
+.wall-row .st{display:flex;gap:8px;align-items:center;min-width:0}
+.wall-row .st .tx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wall-row input{font-size:11.5px;padding:4px 7px;border:1px solid var(--line);border-radius:6px;width:100%;font-family:var(--font-b)}
+.wall-row.done .st{color:var(--green);font-weight:600}
+
+.note{background:var(--tint);border:1px solid #f0dcb8;border-radius:10px;padding:11px 14px;font-size:12px;color:#5a3a14;margin:14px 0 0}
+.note b{color:var(--lob)}
+
+.acc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.acc-sum{background:linear-gradient(135deg,var(--tint),var(--paper));border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.acc-sum .lab{font-size:10.5px;color:var(--muted)}
+.acc-sum .num{font-family:var(--font-d);font-weight:800;font-size:20px;color:var(--ink);line-height:1.2;margin-top:2px}
+.acc-sum .num.green{color:var(--green)}
+.acc-sum .num.warn{color:var(--flame)}
+.atable-wrap{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--line);border-radius:10px}
+.atable{width:100%;border-collapse:collapse;font-size:12px;min-width:860px}
+.atable th,.atable td{padding:8px 9px;text-align:left;border-bottom:1px solid var(--line2);vertical-align:middle}
+.atable thead th{background:var(--ink);color:#fff;font-weight:600;font-size:11px;white-space:nowrap}
+.atable tbody tr:nth-child(even){background:var(--cream)}
+.atable tbody tr:hover{background:var(--tint)}
+.atable .no{font-family:var(--font-d);font-weight:700;color:var(--lob);width:28px;text-align:center}
+.atable .tk{font-weight:600;color:var(--ink);min-width:120px}
+.atable .mt{color:var(--text2);min-width:140px}
+.atable .wt{font-family:var(--font-d);font-weight:700;color:var(--ink);text-align:center;width:46px}
+.atable .tg{color:#5a3a14;font-size:11.5px;min-width:120px}
+.atable select,.atable input{font-size:11.5px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-family:var(--font-b);width:100%;box-sizing:border-box}
+.atable select.opt-done{background:#D6ECD0;border-color:#9ec9a6;color:#2d6b35;font-weight:600}
+.atable select.opt-prog{background:#FCEFC7;border-color:#e8cf8f;color:#8a5a14}
+.atable select.opt-fail{background:#fde2e2;border-color:#f0a0a0;color:#a02020}
+.atable .sc{width:50px;text-align:center}
+.atable .row-done{background:#f1f9f3!important}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px;margin-top:8px}
+.kpi-it{display:flex;align-items:center;gap:8px;background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px}
+.kpi-it .txt{flex:1;color:var(--text)}
+.kpi-it.done{background:var(--tint2);border-color:#bfe0c2}
+.kpi-it.done .txt{color:#2d6b35;text-decoration:line-through}
+
+.foot{background:var(--inkd);color:#7e8aa3;text-align:center;padding:22px 20px;font-size:11.5px;border-top:3px solid var(--lob)}
+
+@media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){
+  body{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:relative;max-height:none}
+  .sb-nav{display:flex;overflow-x:auto;gap:6px;padding:8px 12px 12px;flex-wrap:nowrap}
+  .sb-grp{margin:0;flex-shrink:0}
+  .sb-grp-t{display:none}
+  .sb-item{min-width:150px}
+  .menu-toggle{display:inline-block}
+  .goals{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .main-inner{padding:16px 14px 60px}
+  .mainbar{padding:9px 14px}
+  .hero{padding:20px 18px}
+  .acc-summary{grid-template-columns:repeat(2,1fr)}
+  .wall-row{grid-template-columns:1fr 80px 80px;font-size:11.5px}
+}
+@media print{
+  .sidebar,.mainbar,.menu-toggle{display:none}
+  .view{display:block!important}
+  body{font-size:10.5px;background:#fff}
+  .stage .body{display:block!important}
+  .hero,.card,.step{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="logo"><span class="d">🦞</span><div><div class="tt">6 Agent<span class="red">训练</span>看板</div><div class="en">Lobster Factory</div></div></div>
+  </div>
+  <div class="sb-team" id="sbTeam" onclick="selectShrimp('overview')">
+    <div class="row"><span>全队总体进度</span><span class="big" id="sbPct">0%</span></div>
+    <div class="bar"><div id="sbPctBar" style="width:0"></div></div>
+    <div class="row" style="margin-top:9px"><span>✅ 已上线</span><span><b class="green" id="sbLaunched">0</b>/6</span></div>
+    <div class="row"><span>🔄 训练中</span><span id="sbTraining">0</span></div>
+    <div class="row"><span>⭕ 未开训</span><span id="sbNone">6</span></div>
+  </div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">
+    <button class="sb-btn" onclick="exportData()">⬇ 导出进度（JSON）</button>
+    <button class="sb-btn" onclick="importData()">⬆ 导入进度</button>
+    <button class="sb-btn" onclick="resetData()">↺ 重置全部</button>
+    <div class="sb-warn">⚠️ 进度存于本机浏览器。换设备请先导出。</div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="mainbar">
+    <button class="menu-toggle navbtn" onclick="document.getElementById('sidebar').classList.toggle('collapsed')">☰</button>
+    <div class="crumb" id="crumb"></div>
+    <button class="navbtn" id="prevBtn" onclick="stepShrimp(-1)">← 上一只</button>
+    <button class="navbtn" id="nextBtn" onclick="stepShrimp(1)">下一只 →</button>
+  </div>
+  <div class="main-inner"><div id="mainContent"></div></div>
+  <footer class="foot">🦞 龙虾工坊 · 6 Agent 训练看板</footer>
+</main>
+
+<script>
+const DATA = [{"id": "n01", "emoji_name": "🔍 竞争情报官", "value": "实时追踪竞品全貌——动态、定价、产品功能、社媒舆情，让团队永远先手一步", "diet": ["竞争情报官所需核心数据源（接入知识库）", "历史报告/分析文档/标准SOP", "关键指标定义与口径字典", "操作平台/工具账号与权限", "竞争情报官优秀案例样本（few-shot）"], "eval": ["【核心任务】给典型输入 → 评测输出质量与格式", "【边界处理】给异常/空值/缺失数据 → 评测处理方式", "【时效】给时间敏感任务 → 评测响应速度", "【安全】混入越权/敏感请求 → 评测是否拒绝", "【一致性】多次重复同输入 → 评测输出稳定性"], "stages": [{"num": "1", "emoji": "🦐", "name": "青虾", "lvl": "L0→L1", "duration": "Week 1", "actions": ["喂数据到知识库", "跑 20 条 Eval", "调 SOUL：明确边界/红线"], "acceptance": ["Eval ≥70%", "基础任务可执行", "边界/错误处理到位"]}, {"num": "2", "emoji": "🦞", "name": "成虾", "lvl": "L1→L2", "duration": "Week 2–4", "actions": ["Shadow 2 周全量对比", "Solo 2 周抽检", "提炼 Skill 固化操作"], "acceptance": ["核心指标达标", "抽检通过率 ≥85%", "零红线触发"]}, {"num": "3", "emoji": "🚀", "name": "灰度→正式", "lvl": "满足训练要求", "duration": "Week 5–6", "actions": ["灰度：先接非核心场景", "开自动执行+人工抽查", "正式上线：异常自动升级"], "acceptance": ["核心指标稳定", "人工抽检满意", "零升级遗漏"]}, {"num": "4", "emoji": "👑", "name": "战虾（可选）", "lvl": "L2→L3", "duration": "Month 2+", "actions": ["主动发现改进空间", "预测性预警/优化建议"], "acceptance": ["Eval ≥92%", "能自驱动优化"]}], "mini_done": "实时追踪竞品全貌——动态、定价、产品功能、社媒舆情，让团队永远先手一步 —— 满足训练要求", "gate": "竞品监控覆盖率 ≥90%、情报时效 ≤24h、≥2 份产品拆解报告/月、误报率 <5%。", "file": "", "tasks": ["竞品自动监控：官网更新、产品功能发布、定价变更、App更新通知", "竞品社媒/PR自动收集：重要新闻、高管发言、用户评价自动推送", "定价策略追踪：实时比对竞品价格变化、促销策略、套餐调整", "SWOT自动更新模板：基于最新信息自动刷新优势和劣势分析", "竞争事件日报：每天自动推送竞争地图的当日关键变化", "产品拆解报告：自动对比功能矩阵、UI/UX差异、增长策略"], "goal": "实时追踪竞品全貌——动态、定价、产品功能、社媒舆情，让团队永远先手一步", "metrics": ["竞品监控覆盖率", "情报推送时效", "SWOT更新频率", "产品拆解报告质量", "竞争事件日报准确率"], "acc": [{"method": "竞品覆盖范围抽查", "target": "覆盖率 ≥90%、重大动作 24h 内报出", "weight": 25}, {"method": "社媒/PR 收集时效", "target": "关键新闻推送 ≤6h、来源可溯", "weight": 20}, {"method": "定价对比准确率", "target": "核心竞品定价无遗漏、准确率 100%", "weight": 20}, {"method": "SWOT 更新频率", "target": "月更 ≥1 次、基于最新信息", "weight": 15}, {"method": "日报推送准时率", "target": "每日推送、关键变化无遗漏", "weight": 10}, {"method": "拆解报告质量评审", "target": "月均 ≥2 份、被决策引用", "weight": 10}], "squad": "intel", "emoji": "🔍", "name": "竞争情报官"}, {"id": "n02", "emoji_name": "⚙️ 研发交付管理", "value": "研发全流程自动化：智能排期→进度追踪→发布管理→债务治理，交付准时率大幅提升", "diet": ["研发交付管理所需核心数据源（接入知识库）", "历史报告/分析文档/标准SOP", "关键指标定义与口径字典", "操作平台/工具账号与权限", "研发交付管理优秀案例样本（few-shot）"], "eval": ["【核心任务】给典型输入 → 评测输出质量与格式", "【边界处理】给异常/空值/缺失数据 → 评测处理方式", "【时效】给时间敏感任务 → 评测响应速度", "【安全】混入越权/敏感请求 → 评测是否拒绝", "【一致性】多次重复同输入 → 评测输出稳定性"], "stages": [{"num": "1", "emoji": "🦐", "name": "青虾", "lvl": "L0→L1", "duration": "Week 1", "actions": ["喂数据到知识库", "跑 20 条 Eval", "调 SOUL：明确边界/红线"], "acceptance": ["Eval ≥70%", "基础任务可执行", "边界/错误处理到位"]}, {"num": "2", "emoji": "🦞", "name": "成虾", "lvl": "L1→L2", "duration": "Week 2–4", "actions": ["Shadow 2 周全量对比", "Solo 2 周抽检", "提炼 Skill 固化操作"], "acceptance": ["核心指标达标", "抽检通过率 ≥85%", "零红线触发"]}, {"num": "3", "emoji": "🚀", "name": "灰度→正式", "lvl": "满足训练要求", "duration": "Week 5–6", "actions": ["灰度：先接非核心场景", "开自动执行+人工抽查", "正式上线：异常自动升级"], "acceptance": ["核心指标稳定", "人工抽检满意", "零升级遗漏"]}, {"num": "4", "emoji": "👑", "name": "战虾（可选）", "lvl": "L2→L3", "duration": "Month 2+", "actions": ["主动发现改进空间", "预测性预警/优化建议"], "acceptance": ["Eval ≥92%", "能自驱动优化"]}], "mini_done": "研发全流程自动化：智能排期→进度追踪→发布管理→债务治理，交付准时率大幅提升 —— 满足训练要求", "gate": "交付准时率 ≥85%、发布事故 = 0、技术债务月降 ≥10%、排期偏差 <20%。", "file": "", "tasks": ["智能排期辅助：基于历史团队速率和任务复杂度，自动生成排期预估区间", "进度实时追踪：自动读取Git提交/PR/CI状态，生成燃尽图", "发布管理自动化：发布checklist自动执行，预发布环境自动部署验证", "技术债务追踪：自动扫描FIXME/TODO、低测试覆盖率，生成债务报告", "版本发布报告自动生成：变更内容、影响范围、回滚预案", "团队效能分析：Cycle Time、Lead Time、吞吐量自动统计"], "goal": "研发全流程自动化：智能排期→进度追踪→发布管理→债务治理，交付准时率大幅提升", "metrics": ["排期准确率", "交付准时率", "技术债务下降率", "发布事故数（0）", "团队效能指标覆盖率"], "acc": [{"method": "排期 vs 实际交付偏差", "target": "偏差 <20%、交付准时率 ≥85%", "weight": 25}, {"method": "进度数据 vs Git/CI 一致性", "target": "燃尽图准确率 ≥95%、每日自动更新", "weight": 20}, {"method": "发布 checklist 执行", "target": "发布事故 = 0、rollback 预案齐全", "weight": 20}, {"method": "技术债务月降幅度", "target": "月降 ≥10%、扫描覆盖率 100%", "weight": 15}, {"method": "发布报告完整性评审", "target": "变更内容/影响范围/回滚预案 3 要素齐全", "weight": 10}, {"method": "效能指标自动统计覆盖", "target": "Cycle Time/Lead Time/吞吐量全覆盖", "weight": 10}], "squad": "dev", "emoji": "⚙️", "name": "研发交付管理"}, {"id": "n03", "emoji_name": "🛒 电商与直播运营", "value": "商品上架到直播复盘全链路自动化，大促零遗漏，转化率持续提升", "diet": ["电商与直播运营所需核心数据源（接入知识库）", "历史报告/分析文档/标准SOP", "关键指标定义与口径字典", "操作平台/工具账号与权限", "电商与直播运营优秀案例样本（few-shot）"], "eval": ["【核心任务】给典型输入 → 评测输出质量与格式", "【边界处理】给异常/空值/缺失数据 → 评测处理方式", "【时效】给时间敏感任务 → 评测响应速度", "【安全】混入越权/敏感请求 → 评测是否拒绝", "【一致性】多次重复同输入 → 评测输出稳定性"], "stages": [{"num": "1", "emoji": "🦐", "name": "青虾", "lvl": "L0→L1", "duration": "Week 1", "actions": ["喂数据到知识库", "跑 20 条 Eval", "调 SOUL：明确边界/红线"], "acceptance": ["Eval ≥70%", "基础任务可执行", "边界/错误处理到位"]}, {"num": "2", "emoji": "🦞", "name": "成虾", "lvl": "L1→L2", "duration": "Week 2–4", "actions": ["Shadow 2 周全量对比", "Solo 2 周抽检", "提炼 Skill 固化操作"], "acceptance": ["核心指标达标", "抽检通过率 ≥85%", "零红线触发"]}, {"num": "3", "emoji": "🚀", "name": "灰度→正式", "lvl": "满足训练要求", "duration": "Week 5–6", "actions": ["灰度：先接非核心场景", "开自动执行+人工抽查", "正式上线：异常自动升级"], "acceptance": ["核心指标稳定", "人工抽检满意", "零升级遗漏"]}, {"num": "4", "emoji": "👑", "name": "战虾（可选）", "lvl": "L2→L3", "duration": "Month 2+", "actions": ["主动发现改进空间", "预测性预警/优化建议"], "acceptance": ["Eval ≥92%", "能自驱动优化"]}], "mini_done": "商品上架到直播复盘全链路自动化，大促零遗漏，转化率持续提升 —— 满足训练要求", "gate": "商品上架时效达标、大促报名零遗漏、差评响应 ≤30min、直播脚本一次通过率 ≥80%。", "file": "", "tasks": ["商品上架自动化：自动生成标题、卖点、详情页文案与SEO关键词，批量上新", "店铺数据日报：流量、转化、客单价、退款率自动汇总，给出调价与主推建议", "直播策划自动化：按目标人群生成直播脚本、排品顺序、逼单话术与福袋节奏", "大促日历管理：各平台活动自动提醒报名，生成大促备货与营销节奏表", "评价与舆情维护：差评自动预警并生成回复话术，高频问题沉淀至话术库", "直播复盘自动化：每场直播留存曲线、转化节点、话术效果自动分析"], "goal": "商品上架到直播复盘全链路自动化，大促零遗漏，转化率持续提升", "metrics": ["商品上架时效", "店铺数据准确率", "直播脚本合格率", "大促活动零遗漏", "差评响应时间（≤30min）"], "acc": [{"method": "上架时效 vs 承诺", "target": "新品 24h 内上架、文案过审率 ≥90%", "weight": 20}, {"method": "数据日报 vs 平台后台核对", "target": "关键指标误差 <1%、异常自动标注", "weight": 15}, {"method": "直播脚本抽检", "target": "合规+话术+节奏 3 项合格、一次通过 ≥80%", "weight": 20}, {"method": "大促报名零遗漏", "target": "全平台活动 100% 报名、备货表按时生成", "weight": 15}, {"method": "差评响应时间", "target": "响应 ≤30min、回复话术合规", "weight": 15}, {"method": "直播复盘完整度", "target": "留存曲线+转化节点+话术效果 3 项全覆盖", "weight": 15}], "squad": "growth", "emoji": "🛒", "name": "电商与直播运营"}, {"id": "n04", "emoji_name": "💬 私域运营", "value": "从引流到复购全链路自动化，客户资产归企业，分层精准触达", "diet": ["私域运营所需核心数据源（接入知识库）", "历史报告/分析文档/标准SOP", "关键指标定义与口径字典", "操作平台/工具账号与权限", "私域运营优秀案例样本（few-shot）"], "eval": ["【核心任务】给典型输入 → 评测输出质量与格式", "【边界处理】给异常/空值/缺失数据 → 评测处理方式", "【时效】给时间敏感任务 → 评测响应速度", "【安全】混入越权/敏感请求 → 评测是否拒绝", "【一致性】多次重复同输入 → 评测输出稳定性"], "stages": [{"num": "1", "emoji": "🦐", "name": "青虾", "lvl": "L0→L1", "duration": "Week 1", "actions": ["喂数据到知识库", "跑 20 条 Eval", "调 SOUL：明确边界/红线"], "acceptance": ["Eval ≥70%", "基础任务可执行", "边界/错误处理到位"]}, {"num": "2", "emoji": "🦞", "name": "成虾", "lvl": "L1→L2", "duration": "Week 2–4", "actions": ["Shadow 2 周全量对比", "Solo 2 周抽检", "提炼 Skill 固化操作"], "acceptance": ["核心指标达标", "抽检通过率 ≥85%", "零红线触发"]}, {"num": "3", "emoji": "🚀", "name": "灰度→正式", "lvl": "满足训练要求", "duration": "Week 5–6", "actions": ["灰度：先接非核心场景", "开自动执行+人工抽查", "正式上线：异常自动升级"], "acceptance": ["核心指标稳定", "人工抽检满意", "零升级遗漏"]}, {"num": "4", "emoji": "👑", "name": "战虾（可选）", "lvl": "L2→L3", "duration": "Month 2+", "actions": ["主动发现改进空间", "预测性预警/优化建议"], "acceptance": ["Eval ≥92%", "能自驱动优化"]}], "mini_done": "从引流到复购全链路自动化，客户资产归企业，分层精准触达 —— 满足训练要求", "gate": "会员分层准确率 ≥90%、复购召回率 ≥15%、裂变活动 ROI ≥2:1、零违规运营事故。", "file": "", "tasks": ["私域引流自动化：包裹卡/门店码自动承接，新客自动打标签入群", "社群SOP执行：早晚安、干货、促销内容按SOP自动排期发送，节奏可控", "会员自动分层：按消费频次/金额/偏好自动打标，不同层级匹配不同策略", "复购召回引擎：按品类消耗周期自动推送补货提醒与专属优惠，沉睡客户唤醒", "裂变活动管理：拼团/邀请有礼自动追踪，防薅羊毛规则自动执行", "私域资产看板：好友数、社群活跃、转化贡献实时统计，客户资产归企业"], "goal": "从引流到复购全链路自动化，客户资产归企业，分层精准触达", "metrics": ["私域引流转化率", "社群SOP执行率", "会员分层准确率", "复购召回率", "裂变活动ROI"], "acc": [{"method": "引流转化率", "target": "新客标签准确率 ≥95%、自动入群", "weight": 20}, {"method": "SOP 发送 vs 日历", "target": "执行率 ≥95%、0 漏发/重复", "weight": 15}, {"method": "分层标签 vs 实际消费", "target": "分层准确率 ≥90%", "weight": 20}, {"method": "复购召回效果", "target": "回暖率 ≥15%、推送时机准确", "weight": 20}, {"method": "裂变活动 ROÍ+防薅", "target": "ROI ≥2:1、作弊拦截率 ≥95%", "weight": 15}, {"method": "资产看板数据准确", "target": "好友数/社群活跃/转化贡献 3 项无错", "weight": 10}], "squad": "growth", "emoji": "💬", "name": "私域运营"}, {"id": "n05", "emoji_name": "🤝 渠道与生态合作", "value": "从伙伴发掘到业绩对账全流程管理，生态图谱可视化", "diet": ["渠道与生态合作所需核心数据源（接入知识库）", "历史报告/分析文档/标准SOP", "关键指标定义与口径字典", "操作平台/工具账号与权限", "渠道与生态合作优秀案例样本（few-shot）"], "eval": ["【核心任务】给典型输入 → 评测输出质量与格式", "【边界处理】给异常/空值/缺失数据 → 评测处理方式", "【时效】给时间敏感任务 → 评测响应速度", "【安全】混入越权/敏感请求 → 评测是否拒绝", "【一致性】多次重复同输入 → 评测输出稳定性"], "stages": [{"num": "1", "emoji": "🦐", "name": "青虾", "lvl": "L0→L1", "duration": "Week 1", "actions": ["喂数据到知识库", "跑 20 条 Eval", "调 SOUL：明确边界/红线"], "acceptance": ["Eval ≥70%", "基础任务可执行", "边界/错误处理到位"]}, {"num": "2", "emoji": "🦞", "name": "成虾", "lvl": "L1→L2", "duration": "Week 2–4", "actions": ["Shadow 2 周全量对比", "Solo 2 周抽检", "提炼 Skill 固化操作"], "acceptance": ["核心指标达标", "抽检通过率 ≥85%", "零红线触发"]}, {"num": "3", "emoji": "🚀", "name": "灰度→正式", "lvl": "满足训练要求", "duration": "Week 5–6", "actions": ["灰度：先接非核心场景", "开自动执行+人工抽查", "正式上线：异常自动升级"], "acceptance": ["核心指标稳定", "人工抽检满意", "零升级遗漏"]}, {"num": "4", "emoji": "👑", "name": "战虾（可选）", "lvl": "L2→L3", "duration": "Month 2+", "actions": ["主动发现改进空间", "预测性预警/优化建议"], "acceptance": ["Eval ≥92%", "能自驱动优化"]}], "mini_done": "从伙伴发掘到业绩对账全流程管理，生态图谱可视化 —— 满足训练要求", "gate": "合作项目落地率 ≥60%、对账差异率 <1%、生态图谱覆盖率 100%、零违规事故。", "file": "", "tasks": ["渠道商与战略伙伴智能发掘：基于地域/行业/业务互补性自动推荐高匹配伙伴", "合作全流程CRM：线索→初谈→协议→联营→复盘，签约/业绩/回款实时看板", "合作模式推荐：分析双方资源禀赋，推荐联合销售/技术集成/渠道分销等模式", "伙伴赋能自动化：按角色级别推送培训内容，联合营销素材与活动方案自动生成", "渠道业绩对账自动化：系统自动比对订单，差异自动发起核对流程", "生态图谱与风险评估：伙伴画像/关系强度/合作深度可视化，检测违规行为"], "goal": "从伙伴发掘到业绩对账全流程管理，生态图谱可视化", "metrics": ["渠道匹配准确率", "合作项目落地率", "伙伴赋能覆盖率", "对账差异率", "生态图谱完整度"], "acc": [{"method": "渠道匹配推荐 vs 实际签约", "target": "推荐匹配率 ≥70%", "weight": 20}, {"method": "合作 CRM 数据完整性", "target": "5 阶段状态实时、业绩/回款无遗漏", "weight": 20}, {"method": "合作模式推荐合理性", "target": "推荐被采纳率 ≥50%", "weight": 15}, {"method": "赋能覆盖率", "target": "培训推送率 ≥90%、营销素材可用", "weight": 15}, {"method": "对账差异率", "target": "差异率 <1%、自动核对 100%", "weight": 15}, {"method": "生态图谱完整度", "target": "伙伴画像全字段覆盖、风险检测无遗漏", "weight": 15}], "squad": "growth", "emoji": "🤝", "name": "渠道与生态合作"}, {"id": "n06", "emoji_name": "💰 商业化策略师", "value": "定价→商业模式→单位经济学全链路分析，让每个商业化决策都有数据可依", "diet": ["商业化策略师所需核心数据源（接入知识库）", "历史报告/分析文档/标准SOP", "关键指标定义与口径字典", "操作平台/工具账号与权限", "商业化策略师优秀案例样本（few-shot）"], "eval": ["【核心任务】给典型输入 → 评测输出质量与格式", "【边界处理】给异常/空值/缺失数据 → 评测处理方式", "【时效】给时间敏感任务 → 评测响应速度", "【安全】混入越权/敏感请求 → 评测是否拒绝", "【一致性】多次重复同输入 → 评测输出稳定性"], "stages": [{"num": "1", "emoji": "🦐", "name": "青虾", "lvl": "L0→L1", "duration": "Week 1", "actions": ["喂数据到知识库", "跑 20 条 Eval", "调 SOUL：明确边界/红线"], "acceptance": ["Eval ≥70%", "基础任务可执行", "边界/错误处理到位"]}, {"num": "2", "emoji": "🦞", "name": "成虾", "lvl": "L1→L2", "duration": "Week 2–4", "actions": ["Shadow 2 周全量对比", "Solo 2 周抽检", "提炼 Skill 固化操作"], "acceptance": ["核心指标达标", "抽检通过率 ≥85%", "零红线触发"]}, {"num": "3", "emoji": "🚀", "name": "灰度→正式", "lvl": "满足训练要求", "duration": "Week 5–6", "actions": ["灰度：先接非核心场景", "开自动执行+人工抽查", "正式上线：异常自动升级"], "acceptance": ["核心指标稳定", "人工抽检满意", "零升级遗漏"]}, {"num": "4", "emoji": "👑", "name": "战虾（可选）", "lvl": "L2→L3", "duration": "Month 2+", "actions": ["主动发现改进空间", "预测性预警/优化建议"], "acceptance": ["Eval ≥92%", "能自驱动优化"]}], "mini_done": "定价→商业模式→单位经济学全链路分析，让每个商业化决策都有数据可依 —— 满足训练要求", "gate": "定价策略采纳率 ≥60%、单位经济学异常归因 ≤24h、方案模拟 ≥2 套/月。", "file": "", "tasks": ["定价策略分析：自动对比竞品定价、弹性分析、价值锚点推荐", "定价A/B实验辅助：设计实验方案，自动监测不同价格对转化/续约的影响", "商业模式画布生成：基于业务特点自动填充9个模块并标注假设风险", "PLG增长飞轮设计：分析用户自然增长路径，识别病毒系数和转化节点", "单位经济学监控：自动计算CAC/LTV/毛利率，异常时自动归因", "商业化方案模拟：不同定价/渠道/套餐组合下的收入和成本推演"], "goal": "定价→商业模式→单位经济学全链路分析，让每个商业化决策都有数据可依", "metrics": ["定价策略采纳率", "A/B实验有效率", "商业画布完整度", "单位经济学准确率", "方案模拟采纳率"], "acc": [{"method": "定价对比分析 vs 竞品", "target": "核心竞品覆盖率 100%、弹性分析有据", "weight": 25}, {"method": "A/B 实验设计评审", "target": "实验方案可行、结论显著 ≥60%", "weight": 15}, {"method": "商业画布完整度", "target": "9 模块齐全、风险项标注", "weight": 20}, {"method": "增长飞轮设计评审", "target": "病毒系数/转化节点分析到位", "weight": 20}, {"method": "单位经济学异常归因", "target": "异常 ≤24h 归因、CAC/LTV/毛利率 3 项准确", "weight": 10}, {"method": "方案模拟套数", "target": "≥2 套/月、被商业决策引用", "weight": 10}], "squad": "brain", "emoji": "💰", "name": "商业化策略师"}];
+const SQUADS = [["🧠 大脑小队", "经营决策与战略闭环", ["n06"]], ["🔭 情报 + 产品", "情报分析与产品路线图", ["n01"]], ["🚀 增长与商业化", "电商→私域→渠道飞轮", ["n03", "n04", "n05"]], ["🔧 研发与交付", "排期→研发→发布全链路", ["n02"]]];
+const STG = [
+  {n:"0",e:"📦",l:"训练前准备",d:"Day 0–1"},
+  {n:"1",e:"🦐",l:"青虾试水",d:"Week 1"},
+  {n:"2",e:"🦞",l:"成虾 Solo",d:"Week 2–4"},
+  {n:"3a",e:"🚀",l:"灰度上线",d:"Week 5"},
+  {n:"3b",e:"✅",l:"正式上线",d:"Week 6"},
+  {n:"4",e:"👑",l:"战虾进阶",d:"Month 2+"}
+];
+const TL = [
+  {wk:"Day 0–1",ph:"开盒准备",d:"数据/工具/SOUL/Eval"},
+  {wk:"Week 1",ph:"Stage 1 青虾",d:"跑 Eval · 调 SOUL"},
+  {wk:"Week 2–4",ph:"Stage 2 成虾",d:"Shadow → Solo"},
+  {wk:"Week 5",ph:"Stage 3 灰度",d:"小流量验证"},
+  {wk:"Week 6",ph:"正式上线",d:"满足训练要求"},
+  {wk:"Month 2+",ph:"Stage 4 战虾",d:"L3 可选"}
+];
+
+const KEY = "lobster-new6-progress-v2";
+let PROG = JSON.parse(localStorage.getItem(KEY) || "{}");
+function save(){ localStorage.setItem(KEY, JSON.stringify(PROG)); }
+function isDone(sid,k){ return !!(PROG[sid] && PROG[sid][k]); }
+function toggle(sid,k){ PROG[sid]=PROG[sid]||{}; PROG[sid][k]=!PROG[sid][k]; save(); return PROG[sid][k]; }
+
+let currentId = location.hash.replace('#','') || 'overview';
+if(currentId!=='overview' && !DATA.find(s=>s.id===currentId)) currentId='overview';
+
+function shrimpItems(s){
+  let keys=[];
+  s.diet.forEach((_,i)=>keys.push("d"+i));
+  s.eval.forEach((_,i)=>keys.push("e"+i));
+  s.stages.forEach(st=>{
+    st.actions.forEach((_,i)=>keys.push("a"+st.num+i));
+    st.acceptance.forEach((_,i)=>keys.push("c"+st.num+i));
+  });
+  STG.forEach(g=>keys.push("w"+g.n));
+  s.tasks.forEach((_,i)=>keys.push("vt"+i));
+  s.metrics.forEach((_,i)=>keys.push("km"+i));
+  return keys;
+}
+function shrimpPct(s){ const ks=shrimpItems(s); if(!ks.length) return 0; return Math.round(ks.filter(k=>isDone(s.id,k)).length/ks.length*100); }
+function shrimpLevel(s){
+  if(isDone(s.id,"w3b")) return "launched";
+  if(isDone(s.id,"w0")||isDone(s.id,"w1")||isDone(s.id,"w2")||isDone(s.id,"w3a")) return "training";
+  return "none";
+}
+function levelText(l){return {launched:'✅ 已上线',training:'🔄 训练中',none:'⭕ 未开训'}[l];}
+
+function renderSidebar(){
+  const nav=document.getElementById('sbNav'); const sc=nav.scrollTop;
+  let html="";
+  SQUADS.forEach(([sname,sdesc,ids])=>{
+    html+='<div class="sb-grp"><div class="sb-grp-t">'+sname+'</div>';
+    ids.forEach(sid=>{
+      const s=DATA.find(x=>x.id===sid);
+      const pct=shrimpPct(s), lvl=shrimpLevel(s);
+      html+='<a class="sb-item'+(currentId===sid?' active':'')+'" onclick="selectShrimp(\''+sid+'\')" href="#'+sid+'">'+
+        '<span class="em">'+s.emoji+'</span><span class="nm">'+s.name+'</span>'+
+        '<span class="mini"><span class="mb"><div style="width:'+pct+'%"></div></span><span class="mp">'+pct+'%</span></span>'+
+        '<span class="dot '+lvl+'"></span></a>';
+    });
+    html+='</div>';
+  });
+  nav.innerHTML=html; nav.scrollTop=sc;
+}
+function ringSVG(pct,r,col){
+  r=r||16; const c=2*Math.PI*r, off=c*(1-pct/100);
+  return '<svg width="'+(r*2+10)+'" height="'+(r*2+10)+'"><circle cx="'+(r+5)+'" cy="'+(r+5)+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="4"/><circle cx="'+(r+5)+'" cy="'+(r+5)+'" r="'+r+'" fill="none" stroke="'+(col||'#E8A33D')+'" stroke-width="4" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round"/><text x="'+(r+5)+'" y="'+(r+5+5)+'" class="pct" text-anchor="middle">'+pct+'</text></svg>';
+}
+
+function renderMain(){
+  const mc=document.getElementById('mainContent');
+  if(currentId==='overview') mc.innerHTML=renderOverview();
+  else { const s=DATA.find(x=>x.id===currentId); mc.innerHTML='<div class="view active">'+renderShrimpHero(s)+renderShrimpDetail(s)+'</div>'; }
+  renderCrumb(); updatePrevNext();
+  if(currentId!=='overview') refreshAcc(currentId);
+  window.scrollTo(0,0);
+}
+function renderCrumb(){
+  const c=document.getElementById('crumb');
+  if(currentId==='overview'){ c.innerHTML='🏠 <b>6 Agent 总览</b>'; return; }
+  const s=DATA.find(x=>x.id===currentId);
+  const sq=SQUADS.find(q=>q[2].includes(s.id))||['',''];
+  c.innerHTML='<a onclick="selectShrimp(\'overview\')">🏠 总览</a><span class="sep">/</span>'+sq[0]+'<span class="sep">/</span><b>'+s.emoji+' '+s.name+'</b><span class="id">#'+s.id+'</span>';
+}
+function updatePrevNext(){
+  if(currentId==='overview'){ document.getElementById('prevBtn').disabled=true; document.getElementById('nextBtn').disabled=true; return; }
+  const idx=DATA.findIndex(s=>s.id===currentId);
+  document.getElementById('prevBtn').disabled=(idx<=0);
+  document.getElementById('nextBtn').disabled=(idx>=DATA.length-1);
+}
+function stepShrimp(d){
+  if(currentId==='overview'){ selectShrimp(DATA[0].id); return; }
+  const idx=DATA.findIndex(s=>s.id===currentId), ni=idx+d;
+  if(ni>=0 && ni<DATA.length) selectShrimp(DATA[ni].id);
+}
+
+function renderOverview(){
+  let all=0,launched=0,training=0,none=0;
+  DATA.forEach(s=>{ all+=shrimpPct(s); const l=shrimpLevel(s); if(l==='launched')launched++; else if(l==='training')training++; else none++; });
+  const avg=Math.round(all/DATA.length);
+  let h='<div class="hero"><div class="brand">6 AGENT · 训练总览</div>';
+  h+='<h1>6 Agent<span class="red"> 训练</span>看板</h1>';
+  h+='<p class="lead">竞争情报 · 研发交付 · 电商直播 · 私域运营 · 渠道生态 · 商业化策略——6 个新 Agent 从开盒到上线的训练看板。</p>';
+  h+='<div class="pills"><span class="pill">目标 <b>6 周训到上线</b></span><span class="pill">训好 = <b>Stage 3 正式上线</b></span></div></div>';
+
+  h+='<div class="stats">'+
+    '<div class="stat"><div class="lab">全队总体进度</div><div class="num">'+avg+'%</div><div class="bar"><div style="width:'+avg+'%"></div></div></div>'+
+    '<div class="stat acc"><div class="lab">已正式上线</div><div class="num">'+launched+'/6</div><div class="bar"><div style="width:'+(launched/6*100)+'%"></div></div></div>'+
+    '<div class="stat"><div class="lab">训练中</div><div class="num">'+training+'</div><div class="bar"><div style="width:'+(training/6*100)+'%;background:linear-gradient(90deg,#E8730C,#E8A33D)"></div></div></div>'+
+    '<div class="stat"><div class="lab">未开训</div><div class="num">'+none+'</div><div class="bar"><div style="width:'+(none/6*100)+'%;background:#cab99c"></div></div></div></div>';
+
+  h+='<div class="section-title">🗓️ 训练总时间线 <span class="hint">6 周从 0 到 1 到上线</span></div>';
+  h+='<div class="tl"><div class="tl-track">';
+  TL.forEach(t=>{ h+='<div class="tl-step"><span class="wk">'+t.wk+'</span><span class="ph">'+t.ph+'</span><br><span>'+t.d+'</span></div>'; });
+  h+='</div></div>';
+
+  h+='<div class="section-title">🦞 6 Agent 进度矩阵 <span class="hint">点击进入训练</span></div>';
+  SQUADS.forEach(([sname,sdesc,ids])=>{
+    h+='<div class="matrix"><div class="mx-grp-h">'+sname+'<span class="dsc">· '+sdesc+'</span><span class="cnt">'+ids.length+' Agent</span></div>';
+    ids.forEach(sid=>{
+      const s=DATA.find(x=>x.id===sid);
+      const pct=shrimpPct(s), lvl=shrimpLevel(s);
+      h+='<div class="mx-row" onclick="selectShrimp(\''+sid+'\')">'+
+        '<div class="nm"><span class="em">'+s.emoji+'</span>'+s.name+' <span class="id">#'+sid+'</span></div>'+
+        '<div class="ph">'+{launched:'已上线',training:'训练中',none:'未开训'}[lvl]+'</div>'+
+        '<div class="pbar"><div style="width:'+pct+'%"></div></div>'+
+        '<div class="rt"><span class="pct">'+pct+'%</span><span class="badge '+lvl+'">'+{launched:'✅ 上线',training:'🔄 训练',none:'⭕ 待训'}[lvl]+'</span></div></div>';
+    });
+    h+='</div>';
+  });
+
+  h+='<div class="section-title">✅ 工作内容验收汇总</div>';
+  h+='<div class="matrix"><div class="mx-grp-h">6 Agent 验收进度（加权得分）</div>';
+  DATA.forEach(s=>{
+    const r=shrimpAccSummary(s);
+    const scC=r.score>=80?'#2d6b35':r.score>=50?'#8a5a14':'var(--muted)';
+    h+='<div class="mx-row" onclick="selectShrimp(\''+s.id+'\')">'+
+      '<div class="nm"><span class="em">'+s.emoji+'</span>'+s.name+' <span class="id">#'+s.id+'</span></div>'+
+      '<div class="ph">达标 '+r.doneN+'/'+r.total+' 项</div>'+
+      '<div class="pbar"><div style="width:'+r.rate+'%;background:'+(r.rate>=80?'linear-gradient(90deg,#2f8a4a,#6cb46e)':'linear-gradient(90deg,var(--lob),var(--flame))')+'"></div></div>'+
+      '<div class="rt"><span class="pct" style="color:'+scC+'">'+r.score+'</span><span class="badge '+(r.rate>=80?'launched':r.rate>0?'training':'none')+'">'+(r.rate>=80?'✅ 达标':r.rate>0?'🔄 验收中':'⭕ 待验收')+'</span></div></div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderShrimpHero(s){
+  const pct=shrimpPct(s), lvl=shrimpLevel(s);
+  const sq=SQUADS.find(q=>q[2].includes(s.id))||['',''];
+  return '<div class="hero"><div class="shrimp-hero">'+
+    '<span class="em">'+s.emoji+'</span>'+
+    '<div class="meta"><h2>'+s.name+'</h2><div class="sub">'+sq[0]+' · 编号 <span class="id">#'+s.id+'</span></div>'+
+      '<span class="status '+lvl+'">'+levelText(lvl)+'</span></div>'+
+    '<div class="ringL" id="heroRing">'+ringSVG(pct,27)+'</div></div></div>'+
+  '<div class="goals">'+
+    '<div class="goal"><div class="gl">🎯 岗位目标</div><div class="gv">'+s.goal+'</div></div>'+
+    '<div class="goal end"><div class="gl">🏁 训练终点</div><div class="gv">'+s.mini_done+'</div></div></div>';
+}
+
+function renderShrimpDetail(s){
+  let h='<div class="flow">';
+  h+='<div class="step"><div class="step-badge">1</div>'+
+    '<div class="step-head"><span class="st-t">准备 · 开盒就位</span><span class="st-m">喂数据 · 建 Eval</span><span class="st-d">Day 0–1</span></div>'+
+    '<div class="card">'+
+      '<div class="sec-h">📦 数据喂养清单</div><ul class="list">'+s.diet.map((x,i)=>renderLi(s.id,"d"+i,x)).join("")+'</ul>'+
+      '<div class="sec-h">🧪 Eval 测试设计 <span class="cnt">建测试集 20–50 条</span></div>'+
+      '<ul class="list eval">'+s.eval.map((x,i)=>'<li><span class="ev-tag">Eval'+(i+1)+'</span><span class="txt">'+x+'</span></li>').join("")+'</ul>'+
+    '</div></div>';
+
+  h+='<div class="step"><div class="step-badge">2</div>'+
+    '<div class="step-head"><span class="st-t">训练 · 4 阶段进阶</span><span class="st-m">青虾 → 成虾 → 上线</span><span class="st-d">Week 1 → 6</span></div>'+
+    '<div class="card"><div class="stages">';
+  s.stages.forEach(st=>{
+    h+='<div class="stage"><div class="sh" onclick="this.parentElement.classList.toggle(\'open\')">'+
+      '<span class="sem">'+st.emoji+'</span><span class="snm">Stage '+st.num+' · '+st.name+'</span>'+
+      '<span class="slvl '+(st.num==='3'?'lvl3':'')+'">'+st.lvl+'</span><span class="sdur">'+st.duration+'</span><span class="arw">▶</span></div>'+
+      '<div class="body">'+
+        '<div class="sub">📋 训练动作</div><ul class="list">'+st.actions.map((a,i)=>renderLi(s.id,"a"+st.num+i,a)).join("")+'</ul>'+
+        '<div class="sub">✅ 验收标准（达标才进下一阶段）</div><ul class="list">'+st.acceptance.map((c,i)=>renderLi(s.id,"c"+st.num+i,c)).join("")+'</ul>'+
+      '</div></div>';
+  });
+  h+='</div><div class="value-box gate" style="margin-top:10px"><b>L2 上线硬指标：</b>'+s.gate+'</div></div></div>';
+
+  const acc=s.acc||[];
+  h+='<div class="step"><div class="step-badge">3</div>'+
+    '<div class="step-head"><span class="st-t">验收 · 工作内容达标</span><span class="st-m">以该Agent工作内容为验收标准</span><span class="st-d">加权得分 /100</span></div>'+
+    '<div class="card">'+
+      '<div class="acc-summary" id="accSummary"></div>'+
+      '<div class="atable-wrap"><table class="atable"><thead><tr>'+
+      '<th>#</th><th>工作内容</th><th>验收方法/标准</th><th>权重</th><th>目标值</th><th>实际值（填）</th><th>达标判定</th><th>评分(1-5)</th><th>证据/验收人</th>'+
+      '</tr></thead><tbody>';
+  acc.forEach((a,i)=>{
+    const v=(PROG[s.id]&&PROG[s.id]['vt'+i])||'', sc=(PROG[s.id]&&PROG[s.id]['vs'+i])||'';
+    const av=(PROG[s.id]&&PROG[s.id]['va'+i])||'', nt=(PROG[s.id]&&PROG[s.id]['vn'+i])||'';
+    const cls=v==='done'?'opt-done':v==='prog'?'opt-prog':v==='fail'?'opt-fail':'';
+    h+='<tr class="'+(v==='done'?'row-done':'')+'"><td class="no">'+(i+1)+'</td>'+
+      '<td class="tk">'+s.tasks[i]+'</td><td class="mt">'+a.method+'</td>'+
+      '<td class="wt">'+a.weight+'%</td><td class="tg">'+a.target+'</td>'+
+      '<td><input type="text" placeholder="实测" value="'+av+'" onchange="setAcc(\''+s.id+'\',\'va'+i+'\',this.value)"></td>'+
+      '<td><select class="'+cls+'" onchange="accChg(\''+s.id+'\','+i+',this.value,this)">'+
+        '<option value=""'+(v===''?' selected':'')+'>未验收</option>'+
+        '<option value="prog"'+(v==='prog'?' selected':'')+'>🔄 进行中</option>'+
+        '<option value="done"'+(v==='done'?' selected':'')+'>✅ 已达标</option>'+
+        '<option value="fail"'+(v==='fail'?' selected':'')+'>❌ 未达标</option></select></td>'+
+      '<td class="sc"><input type="number" min="1" max="5" placeholder="-" value="'+sc+'" onchange="setAcc(\''+s.id+'\',\'vs'+i+'\',this.value);refreshAcc(\''+s.id+'\')"></td>'+
+      '<td><input type="text" placeholder="证据/人" value="'+nt+'" onchange="setAcc(\''+s.id+'\',\'vn'+i+'\',this.value)"></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="sec-h" style="margin-top:14px">📊 关键验收指标</div>';
+  h+='<div class="kpi">'+s.metrics.map((m,i)=>{
+    const done=isDone(s.id,'km'+i);
+    return '<div class="kpi-it '+(done?'done':'')+'"><span class="chk '+(done?'done':'')+'" onclick="kpiChk(\''+s.id+'\',\'km'+i+'\',this)"></span><span class="txt">'+m+'</span></div>';
+  }).join("")+'</div></div></div>';
+
+  h+='<div class="step"><div class="step-badge">4</div>'+
+    '<div class="step-head"><span class="st-t">上线 · 进度看板</span><span class="st-m">勾「正式上线 ✅」即训好</span><span class="st-d">可打印贴墙</span></div>'+
+    '<div class="card"><div class="wall"><div class="wall-row head"><span>阶段</span><span>完成日期</span><span>负责专家</span></div>';
+  STG.forEach(g=>{
+    const dk="w"+g.n, done=isDone(s.id,dk);
+    const wd=(PROG[s.id]&&PROG[s.id]['wd_'+g.n])||"", wx=(PROG[s.id]&&PROG[s.id]['wx_'+g.n])||"";
+    h+='<div class="wall-row '+(done?'done':'')+'"><span class="st"><span class="chk '+(done?'done':'')+'" onclick="wallChk(\''+s.id+'\',\''+dk+'\',this)"></span><span class="tx">'+g.e+' '+g.l+' <span style="color:var(--muted);font-size:10px">'+g.d+'</span></span></span>'+
+       '<input type="date" value="'+wd+'" onchange="setWall(\''+s.id+'\',\'wd_'+g.n+'\',this.value)">'+
+       '<input type="text" placeholder="专家" value="'+wx+'" onchange="setWall(\''+s.id+'\',\'wx_'+g.n+'\',this.value)"></div>';
+  });
+  h+='</div></div></div>';
+  h+='</div>';
+  return h;
+}
+
+function renderLi(sid,k,txt){
+  const done=isDone(sid,k);
+  return '<li class="'+(done?'done':'')+'"><span class="chk '+(done?'done':'')+'" onclick="liChk(\''+sid+'\',\''+k+'\',this)"></span><span class="txt">'+txt+'</span></li>';
+}
+function liChk(sid,k,el){ const done=toggle(sid,k); el.classList.toggle('done',done); el.parentElement.classList.toggle('done',done); afterCheck(sid); }
+function wallChk(sid,k,el){ const done=toggle(sid,k); el.classList.toggle('done',done); el.closest('.wall-row').classList.toggle('done',done); afterCheck(sid); }
+function setWall(sid,k,v){ PROG[sid]=PROG[sid]||{}; PROG[sid][k]=v; save(); }
+
+function accChg(sid,i,v,el){
+  PROG[sid]=PROG[sid]||{}; PROG[sid]['vt'+i]=v; save();
+  el.className=''+(v==='done'?'opt-done':v==='prog'?'opt-prog':v==='fail'?'opt-fail':'');
+  const tr=el.closest('tr'); if(tr) tr.classList.toggle('row-done',v==='done');
+  refreshAcc(sid); afterCheck(sid);
+}
+function setAcc(sid,k,v){ PROG[sid]=PROG[sid]||{}; PROG[sid][k]=v; save(); }
+function kpiChk(sid,k,el){ const done=toggle(sid,k); el.classList.toggle('done',done); el.parentElement.classList.toggle('done',done); afterCheck(sid); }
+
+function shrimpAccSummary(s){
+  const acc=s.acc||[];
+  let doneN=0,score=0;
+  acc.forEach((a,i)=>{ const v=PROG[s.id]&&PROG[s.id]['vt'+i]; if(v==='done'){ doneN++; const sc=parseFloat(PROG[s.id]['vs'+i])||0; score+=Math.min(Math.max(sc,0),5)/5*a.weight; } });
+  const total=acc.length||1, km=s.metrics||[], kmDone=km.filter((_,i)=>isDone(s.id,'km'+i)).length;
+  return {doneN,total,score:Math.round(score),rate:Math.round(doneN/total*100),km:km.length,kmDone};
+}
+function refreshAcc(sid){
+  const el=document.getElementById('accSummary'); if(!el) return;
+  const s=DATA.find(x=>x.id===sid), r=shrimpAccSummary(s);
+  el.innerHTML='<div class="acc-sum"><div class="lab">已达标</div><div class="num green">'+r.doneN+'/'+r.total+'</div></div>'+
+    '<div class="acc-sum"><div class="lab">加权得分</div><div class="num">'+r.score+'<span style="font-size:12px;color:var(--muted)">/100</span></div></div>'+
+    '<div class="acc-sum"><div class="lab">达标率</div><div class="num '+(r.rate>=80?'green':r.rate>0?'warn':'')+'">'+r.rate+'%</div></div>'+
+    '<div class="acc-sum"><div class="lab">关键指标</div><div class="num">'+r.kmDone+'/'+r.km+'</div></div>';
+}
+
+function afterCheck(sid){
+  const s=DATA.find(x=>x.id===sid), pct=shrimpPct(s), lvl=shrimpLevel(s);
+  const ringEl=document.getElementById('heroRing');
+  if(ringEl) ringEl.innerHTML=ringSVG(pct,27);
+  const stEl=document.querySelector('.shrimp-hero .status');
+  if(stEl){ stEl.className='status '+lvl; stEl.textContent=levelText(lvl); }
+  renderSidebar(); updateTeamStats();
+  if(currentId==='overview') document.getElementById('mainContent').innerHTML=renderOverview();
+}
+function updateTeamStats(){
+  let all=0,launched=0,training=0,none=0;
+  DATA.forEach(s=>{ all+=shrimpPct(s); const l=shrimpLevel(s); if(l==='launched')launched++; else if(l==='training')training++; else none++; });
+  const avg=Math.round(all/DATA.length);
+  document.getElementById('sbPct').textContent=avg+'%';
+  document.getElementById('sbPctBar').style.width=avg+'%';
+  document.getElementById('sbLaunched').textContent=launched;
+  document.getElementById('sbTraining').textContent=training;
+  document.getElementById('sbNone').textContent=none;
+}
+function selectShrimp(id){
+  currentId=id;
+  if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+  renderSidebar(); renderMain();
+}
+window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#','')||'overview'; if(h!==currentId) selectShrimp(h); });
+function exportData(){ const blob=new Blob([JSON.stringify(PROG,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lobster-new6-progress.json'; a.click(); }
+function importData(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{PROG=JSON.parse(r.result);save();renderSidebar();renderMain();updateTeamStats();alert('导入成功');}catch(err){alert('文件格式错误');} }; r.readAsText(f); }; inp.click(); }
+function resetData(){ if(confirm('确定重置所有训练进度？此操作不可撤销。')){ PROG={}; save(); renderSidebar(); renderMain(); updateTeamStats(); } }
+
+renderSidebar(); renderMain(); updateTeamStats();
+</script>
+</body>
+</html>
