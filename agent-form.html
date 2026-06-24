@@ -942,7 +942,11 @@
 
   <script>
     (function() {
-      var ENDPOINT = "/api/agent-requirements";
+      // ===== Web3Forms 配置 =====
+      // 把下面这串替换成你在 web3forms.com 拿到的 Access Key
+      var WEB3FORMS_ACCESS_KEY = "941cf582-b830-49cc-8634-1d8f0b9c52b3";
+      var WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+      var RECEIVER_EMAIL = ""; // 可选:留空则发到 access key 绑定的邮箱
       var $ = function(id) {
         return document.getElementById(id);
       };
@@ -1188,6 +1192,7 @@
         if (errors.length) {
           banner.textContent = "请修正以下问题后再提交:" + errors.join("、");
           banner.classList.add("visible");
+          banner.scrollIntoView({ behavior: "smooth", block: "center" });
           return;
         }
         banner.classList.remove("visible");
@@ -1197,43 +1202,71 @@
         btn.disabled = true;
         btn.textContent = "提交中…";
 
-        // 真实环境请改为 fetch(POST)。这里因为本地打开无后端,降级为模拟成功。
-        var doFetch = typeof fetch !== "undefined";
-        var promise;
-        if (doFetch) {
-          promise = fetch(ENDPOINT, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-          }).then(function(res) {
-            if (!res.ok) throw new Error("HTTP " + res.status);
-            return res.json().catch(function() {
-              return {};
-            });
-          }).catch(function(err) {
-            // 端点不存在时降级为本地模拟,方便预览
-            console.warn("Endpoint unreachable, falling back to local success:", err);
-            return {
-              ok: true,
-              fallback: true
-            };
-          });
-        } else {
-          promise = Promise.resolve({
-            ok: true,
-            fallback: true
-          });
-        }
+        // 把业务场景 code 翻译成中文,便于邮件阅读
+        var scenarioMap = {
+          customer_support: "客户支持",
+          sales: "销售外呼 / 跟进",
+          internal_ops: "内部运营",
+          data_analysis: "数据分析",
+          other: data.scenarioOther || "其他"
+        };
+        var scenarioText = scenarioMap[data.businessScenario] || data.businessScenario;
 
-        promise.then(function() {
-          showSuccess(data);
-        }).catch(function(err) {
-          btn.disabled = false;
-          btn.textContent = "提交";
-          alert("提交失败:" + err.message);
-        });
+        // 拼一封排版清晰的邮件正文
+        var agentsText = data.agents.length
+          ? data.agents.map(function(a, i) {
+              return "  " + (i + 1) + ". " + (a.title || "(未命名)") +
+                "\n     问题: " + (a.problem || "(未填写)");
+            }).join("\n")
+          : "  (未填写具体岗位)";
+
+        var mailBody =
+          "公司名称: " + data.companyName + "\n" +
+          "业务场景: " + scenarioText + "\n" +
+          "期望 Agent 数量: " + data.agentCount + "\n\n" +
+          "岗位与待解决问题:\n" + agentsText + "\n\n" +
+          "提交时间: " + new Date().toLocaleString("zh-CN") + "\n" +
+          "来源: 鲲界科技 Agent 需求登记表";
+
+        var payload = {
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: "【鲲界科技】新 Agent 需求登记 - " + data.companyName,
+          from_name: "鲲界科技官网表单",
+          // 邮件正文
+          message: mailBody
+        };
+        if (RECEIVER_EMAIL) payload.to = RECEIVER_EMAIL;
+
+        // 同时把结构化数据作为自定义字段附上(可选,方便后续筛选)
+        payload.company = data.companyName;
+        payload.scenario = scenarioText;
+        payload.agent_count = data.agentCount;
+        payload.agent_roles = data.agents.map(function(a){ return a.title; }).filter(Boolean).join(", ");
+
+        fetch(WEB3FORMS_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(payload)
+        })
+          .then(function(res) { return res.json(); })
+          .then(function(res) {
+            if (res && res.success) {
+              showSuccess(data);
+            } else {
+              throw new Error((res && res.message) || "提交未成功");
+            }
+          })
+          .catch(function(err) {
+            console.error("提交失败:", err);
+            btn.disabled = false;
+            btn.textContent = "提交";
+            banner.textContent = "提交失败,请稍后重试或直接联系我们。(" + (err.message || "网络错误") + ")";
+            banner.classList.add("visible");
+            banner.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
       });
 
       function showSuccess(data) {
