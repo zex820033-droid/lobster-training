@@ -1,0 +1,2635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent · 从入门到精通实战手册</title>
+<style>
+  :root {
+    /* Refined palette — deep space + aurora gold */
+    --bg: #0a0c12;
+    --bg-1: #0e1119;
+    --bg-2: #141826;
+    --bg-card: #161a28;
+    --bg-glass: rgba(22, 26, 40, 0.6);
+    --border: #232838;
+    --border-2: #2e3548;
+    --text: #eef1f7;
+    --text-2: #aab2c5;
+    --text-3: #8892aa;
+    --gold: #f5b942;
+    --gold-2: #ffd57a;
+    --gold-soft: rgba(245, 185, 66, 0.12);
+    --gold-glow: rgba(245, 185, 66, 0.4);
+    --emerald: #34d399;
+    --emerald-soft: rgba(52, 211, 153, 0.12);
+    --cyan: #22d3ee;
+    --cyan-soft: rgba(34, 211, 238, 0.12);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167, 139, 250, 0.12);
+    --rose: #fb7185;
+    --rose-soft: rgba(251, 113, 133, 0.12);
+    --mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+    --shadow: 0 8px 30px rgba(0,0,0,.45);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,.5);
+    --shadow-gold: 0 8px 40px rgba(245,185,66,.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background — dopamine animated aurora */
+  body::before {
+    content: '';
+    position: fixed; inset: -20%;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(245,185,66,.22) 0%, transparent 32%),
+      radial-gradient(circle at 88% 12%, rgba(251,113,133,.20) 0%, transparent 30%),
+      radial-gradient(circle at 78% 75%, rgba(34,211,238,.18) 0%, transparent 34%),
+      radial-gradient(circle at 22% 80%, rgba(167,139,250,.20) 0%, transparent 34%),
+      radial-gradient(circle at 50% 50%, rgba(52,211,153,.12) 0%, transparent 40%);
+    pointer-events: none; z-index: 0;
+    animation: auroraShift 24s ease-in-out infinite alternate;
+    filter: blur(10px);
+  }
+  @keyframes auroraShift {
+    0%   { transform: translate3d(-2%, -1%, 0) rotate(0deg) scale(1.05); }
+    50%  { transform: translate3d(2%, 1%, 0) rotate(8deg) scale(1.12); }
+    100% { transform: translate3d(-1%, 2%, 0) rotate(-6deg) scale(1.08); }
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 54px 54px;
+    mask-image: radial-gradient(ellipse 85% 65% at 50% 30%, #000 25%, transparent 85%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    width: 288px;
+    background: rgba(14, 17, 25, 0.72);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-right: 1px solid var(--border);
+    position: fixed; height: 100vh; overflow-y: auto;
+    padding: 26px 0 40px; z-index: 100;
+    transition: transform .3s ease;
+  }
+  .sidebar::-webkit-scrollbar { width: 5px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+
+  .brand { padding: 0 22px 22px; border-bottom: 1px solid var(--border); margin-bottom: 14px; display:flex; align-items:center; gap:11px;}
+  .brand-logo { width: 34px; height: 34px; flex-shrink:0; }
+  .brand-logo svg { width: 100%; height: 100%; }
+  .brand-txt { line-height: 1.15; }
+  .brand-name {
+    font-size: 16px; font-weight: 800; letter-spacing: -0.3px;
+    background: linear-gradient(120deg, var(--gold) 0%, var(--gold-2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .brand-sub { font-size: 10px; color: var(--text-3); letter-spacing: 1.6px; text-transform: uppercase; }
+
+  .nav-section { padding: 0 10px; margin-bottom: 16px; }
+  .nav-section-title {
+    font-size: 10px; font-weight: 700; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 1.6px; padding: 8px 12px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 7px 12px; color: var(--text-2);
+    text-decoration: none; border-radius: 8px;
+    font-size: 13.5px; font-weight: 500;
+    transition: all .15s; border-left: 2px solid transparent;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--bg-card); color: var(--text); }
+  .nav-item.active {
+    background: linear-gradient(90deg, var(--gold-soft), transparent);
+    color: var(--gold); border-left-color: var(--gold); font-weight: 600;
+  }
+  .nav-icon { width: 17px; text-align: center; font-size: 13px; }
+
+  /* ===== Main ===== */
+  .main { margin-left: 288px; flex: 1; padding: 0 64px 120px; }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding: 88px 0 64px; position: relative; overflow: hidden;
+    border-bottom: 1px solid var(--border); margin-bottom: 64px;
+  }
+  .hero-glow {
+    position: absolute; top: -160px; right: -120px;
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, var(--gold-glow) 0%, transparent 65%);
+    opacity: .5; pointer-events: none; filter: blur(20px);
+  }
+  .hero-mascot {
+    position: absolute; top: 30px; right: -10px;
+    width: 180px; opacity: .9; pointer-events: none;
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg-glass); border: 1px solid var(--border-2);
+    backdrop-filter: blur(10px);
+    color: var(--gold); padding: 6px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600; margin-bottom: 26px;
+  }
+  .hero-badge .dot { width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:pulse 2s infinite;}
+  @keyframes pulse {0%,100%{opacity:1}50%{opacity:.4}}
+
+  .hero h1 {
+    font-size: 54px; font-weight: 800; line-height: 1.08;
+    letter-spacing: -1.8px; margin-bottom: 22px;
+  }
+  .hero h1 .gradient {
+    background: linear-gradient(115deg, var(--gold) 0%, var(--gold-2) 45%, var(--cyan) 110%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 18px; color: var(--text-2); max-width: 720px; margin-bottom: 16px;
+  }
+  .hero-cta { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 26px; border-radius: 11px; font-weight: 600; font-size: 14.5px;
+    text-decoration: none; transition: all .2s; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-2) 100%);
+    color: #1a1208; box-shadow: var(--shadow-gold);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 44px var(--gold-glow); }
+  .btn-ghost { background: var(--bg-card); color: var(--text); border-color: var(--border-2); }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
+
+  .hero-stats { display: flex; gap: 44px; margin-top: 46px; }
+  .hero-stat-num {
+    font-size: 30px; font-weight: 800;
+    background: linear-gradient(135deg, var(--gold), var(--gold-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-stat-label { font-size: 11.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1.2px; }
+
+  /* ===== Sections ===== */
+  section { margin-bottom: 76px; scroll-margin-top: 80px; }
+  .section-header { margin-bottom: 30px; }
+  .section-num {
+    display: inline-block; font-family: var(--mono);
+    font-size: 12px; color: var(--gold); font-weight: 700; margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  h2 {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.6px; margin-bottom: 12px;
+    display:flex; align-items:center;
+  }
+  h2 .ico { margin-right: 12px; filter: drop-shadow(0 2px 8px var(--gold-glow)); }
+  h3 { font-size: 21px; font-weight: 600; margin: 34px 0 14px; color: var(--text); }
+  h4 { font-size: 16px; font-weight: 600; margin: 22px 0 10px; color: var(--gold); }
+  p { margin-bottom: 14px; color: var(--text-2); }
+  p strong, li strong { color: var(--text); }
+  ul, ol { margin: 12px 0 16px 22px; }
+  li { margin-bottom: 8px; color: var(--text-2); }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 26px; margin: 18px 0;
+  }
+  .card-accent { border-left: 3px solid var(--gold); }
+  .card-emerald { border-left: 3px solid var(--emerald); background: linear-gradient(90deg, var(--emerald-soft), var(--bg-card) 40%); }
+  .card-rose { border-left: 3px solid var(--rose); background: linear-gradient(90deg, var(--rose-soft), var(--bg-card) 40%); }
+
+  /* ===== Code ===== */
+  code {
+    font-family: var(--mono); font-size: 13px;
+    background: var(--bg-2); padding: 2.5px 7px; border-radius: 5px;
+    color: var(--gold-2); border: 1px solid var(--border);
+  }
+  pre {
+    background: #070912; border: 1px solid var(--border);
+    border-radius: 12px; padding: 40px 20px 18px;
+    overflow-x: auto; margin: 16px 0; position: relative;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  pre::before {
+    content: ''; position: absolute; top: 15px; left: 18px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #ff5f56; box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+  }
+  pre code {
+    background: none; border: none; padding: 0;
+    color: #c9d4e5; font-size: 13px; line-height: 1.7;
+  }
+  pre .c { color: #5d6680; }
+  pre .k { color: var(--gold-2); }
+  pre .s { color: var(--emerald); }
+  pre .o { color: var(--violet); }
+  .code-label {
+    position: absolute; top: 16px; right: 16px;
+    font-size: 10px; color: var(--text-3); font-family: var(--mono);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .copy-btn {
+    position: absolute; top: 10px; right: 14px;
+    background: var(--bg-card); border: 1px solid var(--border-2);
+    color: var(--text-3); padding: 4px 11px; border-radius: 6px;
+    font-size: 11px; cursor: pointer; font-family: var(--sans);
+    opacity: 0; transition: all .2s;
+  }
+  pre:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* ===== Tables ===== */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+  th {
+    text-align: left; padding: 13px 15px;
+    background: var(--bg-2); color: var(--text);
+    font-weight: 600; border-bottom: 2px solid var(--border-2);
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  td { padding: 13px 15px; border-bottom: 1px solid var(--border); color: var(--text-2); }
+  td code { font-size: 12px; }
+  tr:hover td { background: rgba(245,185,66,.03); }
+
+  /* ===== Pills ===== */
+  .pill { display:inline-block; padding:2.5px 10px; border-radius:13px; font-size:11.5px; font-weight:600; margin:0 2px; }
+  .pill-acc { background: var(--gold-soft); color: var(--gold); }
+  .pill-em { background: var(--emerald-soft); color: var(--emerald); }
+  .pill-bl { background: var(--cyan-soft); color: var(--cyan); }
+  .pill-pp { background: var(--violet-soft); color: var(--violet); }
+
+  /* ===== Callouts ===== */
+  .callout { display:flex; gap:14px; padding:16px 18px; border-radius:12px; margin:18px 0; border:1px solid var(--border); align-items:flex-start;}
+  .callout-icon { font-size: 20px; flex-shrink: 0; line-height: 1.4; }
+  .callout-body p { margin: 0; color: var(--text); }
+  .callout-tip { background: linear-gradient(90deg, var(--gold-soft), transparent 70%); border-color: rgba(245,185,66,.25); }
+  .callout-warn { background: linear-gradient(90deg, var(--rose-soft), transparent 70%); border-color: rgba(251,113,133,.25); }
+  .callout-info { background: linear-gradient(90deg, var(--cyan-soft), transparent 70%); border-color: rgba(34,211,238,.25); }
+
+  /* ===== Flow ===== */
+  .flow { display:flex; flex-wrap:wrap; gap:0; margin:24px 0; align-items:stretch; }
+  .flow-step {
+    flex: 1; min-width: 130px; background: var(--bg-card);
+    border: 1px solid var(--border); padding: 16px; position: relative; text-align: center;
+    transition: all .2s; z-index: 1;
+  }
+  .flow-step:hover { border-color: var(--gold); transform: translateY(-3px); z-index: 3; }
+  .flow-step:first-child { border-radius: 12px 0 0 12px; }
+  .flow-step:last-child { border-radius: 0 12px 12px 0; }
+  .flow-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -11px; top: 50%;
+    transform: translateY(-50%); color: var(--gold); font-size: 18px; z-index: 5;
+    background: var(--bg); width: 22px; height: 22px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius: 50%;
+  }
+  .flow-step-num { font-family: var(--mono); color: var(--gold); font-size: 11px; font-weight: 700; }
+  .flow-step-title { font-size: 14px; font-weight: 600; margin: 6px 0 4px; color: var(--text); }
+  .flow-step-desc { font-size: 12px; color: var(--text-3); }
+
+  /* ===== Tree ===== */
+  .tree {
+    background: var(--bg-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 22px; font-family: var(--mono);
+    font-size: 13px; line-height: 2; color: var(--text-2); margin: 16px 0;
+  }
+  .tree .dir { color: var(--gold); font-weight: 600; }
+  .tree .file { color: var(--emerald); }
+  .tree .note { color: var(--text-3); font-style: italic; }
+  .tree .indent { padding-left: 20px; }
+  .tree .indent2 { padding-left: 40px; }
+
+  /* ===== Command grid ===== */
+  .cmd-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(255px,1fr)); gap:12px; margin:16px 0; }
+  .cmd-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; transition: all .18s;
+  }
+  .cmd-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: var(--shadow); }
+  .cmd-card code { display:block; background:none; border:none; color: var(--gold-2); font-size:13px; margin-bottom:4px; padding:0;}
+  .cmd-card span { font-size: 12px; color: var(--text-3); }
+
+  /* ===== Progress bar ===== */
+  .progress-track { position:fixed; top:0; left:288px; right:0; height:3px; background:var(--border); z-index:200; }
+  .progress-fill { height:100%; background: linear-gradient(90deg, var(--gold), var(--gold-2), var(--cyan)); width:0%; transition: width .1s; }
+
+  /* ===== Mobile ===== */
+  .menu-toggle {
+    display:none; position:fixed; top:16px; left:16px; z-index:110;
+    background: var(--bg-card); border:1px solid var(--border-2); color:var(--text);
+    width:42px; height:42px; border-radius:10px; font-size:20px; cursor:pointer;
+  }
+  @media (max-width: 980px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding: 0 22px 80px; }
+    .progress-track { left: 0; }
+    .menu-toggle { display:flex; align-items:center; justify-content:center; }
+    .hero h1 { font-size: 36px; }
+    .hero { padding-top: 76px; }
+    .hero-mascot { display: none; }
+  }
+
+  /* ===== Footer ===== */
+  .footer {
+    margin-top: 88px; padding-top: 36px; border-top: 1px solid var(--border);
+    color: var(--text-3); font-size: 13px; text-align: center;
+  }
+  .footer-crest { margin: 0 auto 12px; width: 44px; height: 44px; }
+
+  /* ===== Back-to-top ===== */
+  .to-top {
+    position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px;
+    border-radius: 50%; background: var(--bg-glass); backdrop-filter: blur(10px);
+    border: 1px solid var(--border-2); color: var(--text-2);
+    display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer;
+    opacity:0; visibility:hidden; transition: all .25s; z-index:90; box-shadow: var(--shadow);
+  }
+  .to-top.show { opacity:1; visibility:visible; }
+  .to-top:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-3px); }
+
+  /* ===== Learning roadmap ===== */
+  .roadmap { position: relative; margin: 32px 0; }
+  .roadmap::before {
+    content:''; position:absolute; left:23px; top:14px; bottom:14px; width:2px;
+    background: linear-gradient(180deg, var(--gold) 0%, var(--cyan) 50%, var(--violet) 100%);
+    border-radius:1px;
+  }
+  .road-phase { position:relative; padding-left:64px; margin-bottom:26px; }
+  .road-phase:last-child { margin-bottom:0; }
+  .road-node {
+    position:absolute; left:11px; top:4px; width:26px; height:26px; border-radius:50%;
+    background: var(--bg); border:3px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; color: var(--gold); z-index:2;
+    box-shadow: 0 0 0 5px var(--bg), 0 0 16px var(--gold-glow);
+  }
+  .road-phase.p2 .road-node { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 0 5px var(--bg), 0 0 16px var(--cyan-soft); }
+  .road-phase.p3 .road-node { border-color: var(--violet); color: var(--violet); box-shadow: 0 0 0 5px var(--bg), 0 0 16px var(--violet-soft); }
+  .road-phase.p4 .road-node { border-color: var(--emerald); color: var(--emerald); box-shadow: 0 0 0 5px var(--bg), 0 0 16px var(--emerald-soft); }
+  .road-card {
+    background: var(--bg-card); border:1px solid var(--border);
+    border-radius:14px; padding:18px 22px; transition: all .2s;
+  }
+  .road-card:hover { border-color: var(--border-2); box-shadow: var(--shadow); }
+  .road-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .road-title { font-size:16px; font-weight:700; color: var(--text); }
+  .road-when { font-size:11px; font-weight:700; color: var(--gold); text-transform:uppercase; letter-spacing:1px; }
+  .road-phase.p2 .road-when { color: var(--cyan); }
+  .road-phase.p3 .road-when { color: var(--violet); }
+  .road-phase.p4 .road-when { color: var(--emerald); }
+  .road-goal { font-size:13px; color: var(--text-2); margin: 8px 0 14px; }
+  .road-tasks { display:flex; flex-direction:column; gap:8px; }
+  .road-task {
+    display:flex; align-items:flex-start; gap:11px; padding:10px 13px;
+    background: var(--bg-1); border:1px solid var(--border); border-radius:9px;
+    text-decoration:none; color: var(--text-2); font-size:13.5px; transition: all .15s;
+  }
+  .road-task:hover { background: var(--gold-soft); border-color: var(--gold); color: var(--text); transform: translateX(3px); }
+  .road-phase.p2 .road-task:hover { background: var(--cyan-soft); border-color: var(--cyan); }
+  .road-phase.p3 .road-task:hover { background: var(--violet-soft); border-color: var(--violet); }
+  .road-phase.p4 .road-task:hover { background: var(--emerald-soft); border-color: var(--emerald); }
+  .road-task-check {
+    width:18px; height:18px; border-radius:5px; border:1.5px solid var(--text-3);
+    flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:transparent; transition: all .15s;
+  }
+  .road-task:hover .road-task-check { border-color: var(--gold); color: var(--gold); }
+  .road-phase.p2 .road-task:hover .road-task-check { border-color: var(--cyan); color: var(--cyan); }
+  .road-phase.p3 .road-task:hover .road-task-check { border-color: var(--violet); color: var(--violet); }
+  .road-phase.p4 .road-task:hover .road-task-check { border-color: var(--emerald); color: var(--emerald); }
+  .road-task-text { flex:1; }
+  .road-task-text strong { color: var(--text); }
+  .road-task-jump { font-size:11px; color: var(--text-3); font-family: var(--mono); white-space:nowrap; flex-shrink:0; margin-left:auto; }
+  .road-task:hover .road-task-jump { color: inherit; }
+
+  /* ===== Agent loop pipeline SVG ===== */
+  .agent-loop { margin: 28px 0; display:flex; justify-content:center; }
+  .agent-loop svg { max-width: 100%; height: auto; }
+  .agent-loop .step-g { opacity: 0; }
+  .agent-loop.in-view .step-g { animation: loopFadeIn .45s ease forwards; }
+  .agent-loop.in-view .step-g:nth-child(1) { animation-delay: 0s; }
+  .agent-loop.in-view .step-g:nth-child(2) { animation-delay: .15s; }
+  .agent-loop.in-view .step-g:nth-child(3) { animation-delay: .3s; }
+  .agent-loop.in-view .step-g:nth-child(4) { animation-delay: .45s; }
+  .agent-loop.in-view .step-g:nth-child(5) { animation-delay: .6s; }
+  @keyframes loopFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== Capability comparison table ===== */
+  .cap-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 18px 0; }
+  .cap-table th, .cap-table td { padding: 13px 16px; border-bottom: 1px solid var(--border); }
+  .cap-table th { text-align: center; font-size: 13px; font-weight: 700; }
+  .cap-table th:first-child { text-align: left; }
+  .cap-table td { text-align: center; font-size: 14px; }
+  .cap-table td:first-child { text-align: left; color: var(--text); font-weight: 600; font-size: 13.5px; }
+  .cap-table .check { color: var(--emerald); font-weight: 700; font-size: 16px; }
+  .cap-table .cross { color: var(--text-3); font-size: 16px; }
+  .cap-table tr:last-child td { border-bottom: none; }
+  .cap-table .hermes-col td { background: rgba(245,185,66,0.06); }
+  .cap-table .hermes-col td:first-child { color: var(--gold); }
+
+  /* ===== Price snapshot cards ===== */
+  .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .price-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; text-align: center; transition: all .2s; }
+  .price-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .price-model { font-size: 14px; font-weight: 700; color: var(--text); }
+  .price-amount { font-size: 28px; font-weight: 800; color: var(--gold); margin: 6px 0 2px; }
+  .price-amount .unit { font-size: 14px; font-weight: 500; color: var(--text-3); }
+  .price-desc { font-size: 12px; color: var(--text-3); }
+  .price-card.best { border-color: var(--gold); position: relative; }
+  .price-card.best::before { content: '推荐'; position: absolute; top: -10px; right: 14px; background: var(--gold); color: #1a1208; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 8px; }
+
+  .roadmap-overview { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin:24px 0; }
+  .ro-chip {
+    background: var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:16px; text-align:center; transition: all .2s;
+  }
+  .ro-chip:hover { transform: translateY(-3px); border-color: var(--border-2); box-shadow: var(--shadow); }
+  .ro-chip-ico { font-size: 26px; }
+  .ro-chip-name { font-size: 13px; font-weight: 700; margin: 6px 0 2px; }
+  .ro-chip-time { font-size: 11px; color: var(--text-3); }
+  .ro-chip.c1 { border-top: 3px solid var(--gold); }
+  .ro-chip.c2 { border-top: 3px solid var(--cyan); }
+  .ro-chip.c3 { border-top: 3px solid var(--violet); }
+  .ro-chip.c4 { border-top: 3px solid var(--emerald); }
+  @media (max-width: 720px) { .roadmap-overview { grid-template-columns: repeat(2,1fr); } }
+
+  /* fade-in on scroll */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ===== Click-to-copy command lines ===== */
+  .cmd-line.copyable { cursor: pointer; position: relative; }
+  .cmd-line.copyable::after { content: '⧉'; color: var(--text-3); font-size: 13px; opacity: 0; transition: opacity .15s; }
+  .cmd-line.copyable:hover::after { opacity: 1; }
+  .cmd-line.copied { border-color: var(--emerald) !important; background: var(--emerald-soft) !important; }
+  .cmd-line.copied::after { content: '✓'; color: var(--emerald); opacity: 1; }
+  .cmd-line .desc { transition: all .2s; }
+  .cmd-line.copied .desc { color: var(--emerald); }
+
+  /* ===== Concept flip cards ===== */
+  .concept-cell { perspective: 800px; cursor: pointer; min-height: 132px; }
+  .concept-inner { position: relative; width: 100%; height: 100%; transition: transform .55s cubic-bezier(.4,.2,.2,1); transform-style: preserve-3d; }
+  .concept-cell.flipped .concept-inner { transform: rotateY(180deg); }
+  .concept-front, .concept-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 12px; }
+  .concept-back { transform: rotateY(180deg); }
+  .concept-back .cb-text { font-size: 12px; color: var(--text-2); line-height: 1.5; text-align: center; }
+  .concept-back .cb-hint { font-size: 10px; color: var(--text-3); margin-top: 8px; }
+
+  /* ===== Tabs (model comparison) ===== */
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0 0; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab { padding: 9px 18px; cursor: pointer; color: var(--text-2); font-size: 13.5px; font-weight: 600; border: 1px solid transparent; border-bottom: none; border-radius: 9px 9px 0 0; transition: all .18s; background: transparent; }
+  .tab:hover { color: var(--text); background: var(--bg-card); }
+  .tab.active { color: var(--gold); background: var(--bg-card); border-color: var(--border); position: relative; }
+  .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--gold); }
+  .tab-panel { display: none; padding: 22px 0 4px; animation: fadeUp .35s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== Spec bars (model capabilities) ===== */
+  .spec-row { margin: 14px 0; }
+  .spec-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .spec-head .name { color: var(--text); font-weight: 600; }
+  .spec-head .val { color: var(--gold-2); font-family: var(--mono); font-size: 12px; }
+  .spec-track { height: 8px; background: var(--bg-1); border-radius: 5px; overflow: hidden; }
+  .spec-fill { height: 100%; border-radius: 5px; width: 0; transition: width 1s cubic-bezier(.2,.6,.2,1); background: linear-gradient(90deg, var(--gold), var(--gold-2)); }
+  .spec-fill.cyan { background: linear-gradient(90deg, var(--cyan), #67e8f9); }
+  .spec-fill.violet { background: linear-gradient(90deg, var(--violet), #c4b5fd); }
+  .spec-fill.emerald { background: linear-gradient(90deg, var(--emerald), #6ee7b7); }
+  .spec-fill.rose { background: linear-gradient(90deg, var(--rose), #fda4af); }
+
+  /* ===== Capability radar (tools) ===== */
+  .radar-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 32px; margin: 24px 0; }
+  .radar-svg { width: 280px; height: 280px; flex-shrink: 0; }
+  .radar-svg polygon { transition: opacity .6s; }
+  .radar-legend { flex: 1; min-width: 220px; }
+  .radar-leg-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 13px; }
+  .radar-leg-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ===== FAQ accordion ===== */
+  .faq-item { border: 1px solid var(--border); border-radius: 12px; margin: 10px 0; overflow: hidden; background: var(--bg-card); transition: border-color .2s; }
+  .faq-item:hover { border-color: var(--border-2); }
+  .faq-item.open { border-color: var(--gold); }
+  .faq-q { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; font-size: 14.5px; font-weight: 600; color: var(--text); }
+  .faq-q .chev { color: var(--gold); transition: transform .3s; font-size: 16px; }
+  .faq-item.open .faq-q .chev { transform: rotate(180deg); }
+  .faq-a { display:grid; grid-template-rows:0fr; overflow:hidden; transition: grid-template-rows .35s ease; }
+  .faq-item.open .faq-a { grid-template-rows:1fr; }
+  .faq-a-inner { min-height:0; padding: 0 20px 16px; color: var(--text-2); font-size: 13.5px; line-height: 1.75; }
+
+  /* ===== Quick-start checklist ===== */
+  .checklist { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin: 18px 0; }
+  .check-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .check-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .check-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-3); }
+  .check-bar { width: 100px; height: 6px; background: var(--bg-1); border-radius: 4px; overflow: hidden; }
+  .check-bar-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--emerald), #6ee7b7); transition: width .35s; }
+  .check-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; cursor: pointer; border-bottom: 1px dashed var(--border); }
+  .check-item:last-child { border-bottom: none; }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: transparent; transition: all .2s; }
+  .check-item.done .check-box { background: var(--emerald); border-color: var(--emerald); color: #06281c; }
+  .check-item.done .check-label { color: var(--text-3); text-decoration: line-through; }
+  .check-label { font-size: 13.5px; color: var(--text-2); transition: all .2s; }
+  .check-item:hover .check-box { border-color: var(--emerald); }
+
+  /* ===== Tool chip detail tooltip ===== */
+  .tool-chip { position: relative; }
+  .tool-chip .tip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px); background: #070912; border: 1px solid var(--border-2); color: var(--text-2); font-size: 11.5px; padding: 6px 11px; border-radius: 7px; white-space: nowrap; opacity: 0; pointer-events: none; transition: all .18s; z-index: 20; }
+  .tool-chip:hover .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .tool-chip .tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--border-2); }
+
+  /* ===== Case-study cards ===== */
+  .case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 18px 0; }
+  .case-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; transition: all .25s; position: relative; overflow: hidden; }
+  .case-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gold); }
+  .case-card:nth-child(2)::before { background: var(--cyan); }
+  .case-card:nth-child(3)::before { background: var(--violet); }
+  .case-card:nth-child(4)::before { background: var(--emerald); }
+  .case-card:hover { transform: translateY(-4px); border-color: var(--border-2); box-shadow: var(--shadow); }
+  .case-emoji { font-size: 26px; }
+  .case-title { font-size: 15px; font-weight: 700; margin: 8px 0 6px; }
+  .case-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
+  .case-chain { margin-top: 10px; font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+  .case-time { margin-top: 6px; font-size: 11.5px; color: var(--emerald); font-weight: 600; }
+
+  /* ===== Chat transcript demo (WeChat-style) ===== */
+  .chat-demo { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; max-width: 640px; }
+  .chat-msg { max-width: 82%; padding: 12px 16px; border-radius: 15px; font-size: 13px; line-height: 1.6; position: relative; animation: chatSlide .5s ease both; }
+  .chat-msg.user { align-self: flex-end; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border-bottom-right-radius: 4px; }
+  .chat-msg.hermes { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+  .chat-msg .meta { font-size: 10.5px; margin-bottom: 4px; opacity: .7; }
+  .chat-tool { display: inline-block; background: var(--bg-1); border: 1px solid var(--border-2); border-radius: 5px; padding: 3px 8px; font-size: 11px; font-family: var(--mono); color: var(--emerald); margin: 4px 2px; }
+  @keyframes chatSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .chat-demo.in-view .chat-msg { animation-play-state: running; }
+  .chat-demo.in-view .chat-msg:nth-child(1) { animation-delay: 0s; }
+  .chat-demo.in-view .chat-msg:nth-child(2) { animation-delay: .35s; }
+  .chat-demo.in-view .chat-msg:nth-child(3) { animation-delay: .7s; }
+  .chat-demo.in-view .chat-msg:nth-child(4) { animation-delay: 1.05s; }
+  .chat-demo.in-view .chat-msg:nth-child(5) { animation-delay: 1.4s; }
+  .chat-demo.in-view .chat-msg:nth-child(6) { animation-delay: 1.75s; }
+  .chat-demo.in-view .chat-msg:nth-child(7) { animation-delay: 2.1s; }
+  .chat-demo.in-view .chat-msg:nth-child(8) { animation-delay: 2.45s; }
+
+  /* ===== Time-save comparison ===== */
+  .time-compare { display: flex; align-items: center; gap: 16px; margin: 18px 0; flex-wrap: wrap; }
+  .time-bar-wrap { flex: 1; min-width: 260px; }
+  .time-bar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .time-bar-row .tlabel { width: 14px; font-size: 14px; text-align: center; flex-shrink: 0; }
+  .time-bar-row .tdesc { width: 120px; font-size: 12.5px; color: var(--text-2); flex-shrink: 0; white-space: nowrap; }
+  .time-bar-row .tbar { flex: 1; height: 24px; border-radius: 6px; background: var(--bg-1); position: relative; overflow: hidden; }
+  .time-bar-row .tbar .tfill { height: 100%; border-radius: 6px; width: 0; transition: width 1.2s ease .3s; position: relative; }
+  .time-bar-row .tbar .tfill .ttag { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10.5px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  .time-stat { text-align: center; min-width: 90px; }
+  .time-stat .ts-num { font-size: 28px; font-weight: 800; color: var(--emerald); }
+  .time-stat .ts-label { font-size: 11px; color: var(--text-3); }
+
+  /* ===== Role badge grid ===== */
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 16px 0; }
+  .role-badge {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 15px; display: flex; align-items: center; gap: 12px; transition: all .2s;
+  }
+  .role-badge:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .role-emoji { font-size: 28px; flex-shrink: 0; }
+  .role-info { flex: 1; }
+  .role-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .role-use { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  /* ===== Inline command chips (replace heavy code blocks) ===== */
+  .cmd-line { display:flex; align-items:center; gap:10px; padding:11px 16px; background:var(--bg-1); border:1px solid var(--border); border-radius:10px; margin:8px 0; font-size:13.5px; transition: all .18s; }
+  .cmd-line:hover { border-color: var(--gold); transform: translateX(4px); background: var(--bg-card); }
+  .cmd-line .prompt { color: var(--emerald); font-family: var(--mono); font-weight:700; flex-shrink:0; }
+  .cmd-line code { background:none; border:none; padding:0; color: var(--gold-2); font-size:13.5px; }
+  .cmd-line .desc { color: var(--text-3); margin-left:auto; font-size:12px; white-space:nowrap; }
+
+  /* ===== Animated terminal demo (hero) ===== */
+  .term-demo {
+    margin-top: 36px; background: #070912; border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-lg); max-width: 560px;
+  }
+  .term-bar { display:flex; align-items:center; gap:7px; padding:11px 16px; background: var(--bg-1); border-bottom:1px solid var(--border); }
+  .term-bar .tl { width:11px;height:11px;border-radius:50%; }
+  .term-body { padding:16px 20px; font-family: var(--mono); font-size:13px; line-height:1.9; min-height:178px; max-height:240px; overflow-y:auto; cursor:text; }
+  .term-body::-webkit-scrollbar { width:6px; }
+  .term-body::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+  .term-body .l-in { color: var(--cyan); }
+  .term-body .l-out { color: var(--text-2); }
+  .term-body .l-ai { color: var(--gold-2); }
+  .term-body .l-ok { color: var(--emerald); }
+  .term-body .l-err { color: var(--rose); }
+  .term-body .l-dim { color: var(--text-3); }
+  .cursor { display:inline-block; width:8px; height:15px; background:var(--gold); vertical-align:middle; animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ===== Respect reduced motion preferences ===== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .spec-fill { transition: none !important; }
+    .auroraShift { animation: none !important; }
+    body::before { animation: none !important; }
+  }
+
+  /* Interactive terminal input row */
+  .term-input-row { display:flex; align-items:center; gap:8px; margin-top:2px; }
+  .term-input-row .prompt-sym { color: var(--gold); font-weight:700; flex-shrink:0; }
+  .term-input { flex:1; background:transparent; border:none; outline:none; color: var(--text); font-family: var(--mono); font-size:13px; caret-color: var(--gold); }
+  .term-input::placeholder { color: var(--text-3); }
+  .term-hint { margin-top:8px; font-size:11px; color:var(--text-3); font-family:var(--mono); }
+  .term-hint b { color: var(--gold-2); font-weight:600; }
+  .term-demo.disabled { opacity:.6; }
+
+  /* ===== Concept icon grid (animated) ===== */
+  .concept-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin:20px 0; }
+  .concept-cell {
+    background: var(--bg-card); border:1px solid var(--border); border-radius:14px;
+    transition: all .25s; position:relative; overflow:visible;
+  }
+  .concept-cell::before {
+    content:''; position:absolute; inset:0; border-radius:14px; background: radial-gradient(circle at 50% 0%, var(--gold-soft), transparent 70%); opacity:0; transition: opacity .25s; pointer-events:none; z-index:0;
+  }
+  .concept-cell:hover { border-color: var(--gold); box-shadow: var(--shadow); }
+  .concept-cell:hover::before { opacity: 1; }
+  .concept-cell.n2:hover { border-color: var(--cyan); }
+  .concept-cell.n2::before { background: radial-gradient(circle at 50% 0%, var(--cyan-soft), transparent 70%); }
+  .concept-cell.n3:hover { border-color: var(--violet); }
+  .concept-cell.n3::before { background: radial-gradient(circle at 50% 0%, var(--violet-soft), transparent 70%); }
+  .concept-cell.n4:hover { border-color: var(--emerald); }
+  .concept-cell.n4::before { background: radial-gradient(circle at 50% 0%, var(--emerald-soft), transparent 70%); }
+  .concept-cell.n5:hover { border-color: var(--rose); }
+  .concept-cell.n5::before { background: radial-gradient(circle at 50% 0%, var(--rose-soft), transparent 70%); }
+  .concept-emoji { font-size: 32px; position:relative; }
+  .concept-name { font-size:14px; font-weight:700; margin:8px 0 4px; position:relative; color:var(--text); }
+  .concept-tag { font-size:11.5px; color:var(--text-3); position:relative; }
+
+  /* ===== Tool category matrix ===== */
+  .tool-cat { margin:14px 0; }
+  .tool-cat-head { display:flex; align-items:center; gap:9px; font-size:13px; font-weight:700; color:var(--gold-2); margin-bottom:10px; }
+  .tool-cat-head .badge { font-size:10px; background:var(--gold-soft); color:var(--gold); padding:2px 8px; border-radius:10px; font-weight:600; }
+  .tool-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .tool-chip {
+    display:flex; align-items:center; gap:7px; padding:8px 13px;
+    background: var(--bg-card); border:1px solid var(--border); border-radius:9px;
+    font-size:12.5px; color:var(--text-2); transition: all .18s; cursor:default;
+  }
+  .tool-chip:hover { border-color: var(--gold); color: var(--text); transform: translateY(-2px); }
+  .tool-chip .e { font-size:14px; }
+
+  /* ===== Animated memory cycle (SVG) ===== */
+  .mem-cycle { display:flex; justify-content:center; margin:24px 0; }
+  .mem-cycle svg { max-width: 540px; width:100%; height:auto; }
+  .mem-node { transition: all .3s; }
+  .mem-cycle:hover .mem-node { animation: memPulse 2s ease-in-out infinite; }
+  @keyframes memPulse { 0%,100%{opacity:.7} 50%{opacity:1} }
+
+  /* ===== Stat counters ===== */
+  .stat-row { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0; }
+  .stat-box { flex:1; min-width:120px; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+  .stat-big { font-size:26px; font-weight:800; }
+  .stat-cap { font-size:12px; color:var(--text-3); margin-top:2px; }
+
+  /* ===== Highlighted keypoint banner ===== */
+  .keypoint {
+    display:flex; align-items:center; gap:14px; padding:16px 20px;
+    background: linear-gradient(90deg, var(--gold-soft), transparent 80%);
+    border:1px solid rgba(245,185,66,.3); border-radius:12px; margin:18px 0;
+  }
+  .keypoint .ki { font-size:24px; }
+  .keypoint .kt { font-size:14.5px; color:var(--text); }
+  .keypoint .kt strong { color: var(--gold); }
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='g'><stop offset='0' stop-color='%23f5b942'/><stop offset='1' stop-color='%2322d3ee'/></linearGradient></defs><circle cx='24' cy='24' r='22' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' font-size='24'>⚡</text></svg>">
+<meta name="description" content="Hermes Agent 从入门到精通实战手册 — 安装配置、工具调用、技能系统、记忆管理、多身份 Profile、网关平台，14 个章节带你掌握 AI Agent 全流程。">
+<meta property="og:title" content="Hermes Agent · 从入门到精通实战手册">
+<meta property="og:description" content="信使之神，你的私人 AI 助理。从安装到精通，一步步建立自己的智能助理。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+
+
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="layout">
+
+  <!-- ===== Sidebar ===== -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <!-- Hermes winged-helm + AI node SVG -->
+        <svg role="img" aria-label="Hermes Agent 品牌标志" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f5b942"/><stop offset="1" stop-color="#ffd57a"/>
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="22" fill="url(#lg1)" fill-opacity="0.12" stroke="url(#lg1)" stroke-width="1.5"/>
+          <!-- winged helmet silhouette -->
+          <path d="M14 30c0-6 4.5-11 10-11s10 5 10 11" stroke="url(#lg1)" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M24 13v-3" stroke="url(#lg1)" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="24" cy="8.5" r="2.4" fill="url(#lg1)"/>
+          <!-- wings -->
+          <path d="M14 24c-3-1-5 0-6 2 2 0 3 .5 4 1.5" stroke="url(#lg1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M34 24c3-1 5 0 6 2-2 0-3 .5-4 1.5" stroke="url(#lg1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- neural nodes -->
+          <circle cx="20" cy="29" r="1.4" fill="#22d3ee"/>
+          <circle cx="28" cy="29" r="1.4" fill="#22d3ee"/>
+          <path d="M20 29h8" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.6"/>
+          <path d="M24 31v3" stroke="url(#lg1)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="24" cy="35.5" r="1.3" fill="url(#lg1)"/>
+        </svg>
+      </div>
+      <div class="brand-txt">
+        <div class="brand-name">Hermes Agent</div>
+        <div class="brand-sub">使用手册 v1.0</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">入门</div>
+      <a href="#why-hermes" class="nav-item"><span class="nav-icon">🧬</span> 为什么选 Hermes</a>
+      <a href="#start" class="nav-item"><span class="nav-icon">🚀</span> 快速开始</a>
+      <a href="#concepts" class="nav-item"><span class="nav-icon">🧩</span> 核心概念</a>
+      <a href="#first-run" class="nav-item"><span class="nav-icon">💬</span> 第一次对话</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">进阶配置</div>
+      <a href="#config" class="nav-item"><span class="nav-icon">⚙️</span> 配置文件</a>
+      <a href="#models" class="nav-item"><span class="nav-icon">🧠</span> 模型与 Provider</a>
+      <a href="#tools" class="nav-item"><span class="nav-icon">🛠️</span> 工具系统</a>
+      <a href="#skills" class="nav-item"><span class="nav-icon">📚</span> 技能 Skills</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">高级能力</div>
+      <a href="#memory" class="nav-item"><span class="nav-icon">💾</span> 记忆系统</a>
+      <a href="#profiles" class="nav-item"><span class="nav-icon">🎭</span> 多身份 Profile</a>
+      <a href="#soul" class="nav-item"><span class="nav-icon">🕯️</span> 灵魂档案 SOUL</a>
+      <a href="#gateway" class="nav-item"><span class="nav-icon">🌐</span> 网关与平台</a>
+      <a href="#advanced" class="nav-item"><span class="nav-icon">🚀</span> 进阶：定时·安全·调度</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">实战与参考</div>
+      <a href="#cases" class="nav-item"><span class="nav-icon">🎯</span> 实战案例</a>
+      <a href="#chat-demo" class="nav-item"><span class="nav-icon">💬</span> 对话实录</a>
+      <a href="#time-save" class="nav-item"><span class="nav-icon">⏱️</span> 时间对比</a>
+      <a href="#who" class="nav-item"><span class="nav-icon">👥</span> 适用人群</a>
+      <a href="#agent-compare" class="nav-item"><span class="nav-icon">⚖️</span> Agent 对比</a>
+      <a href="#roi" class="nav-item"><span class="nav-icon">📊</span> 降本增效</a>
+      <a href="#faq" class="nav-item"><span class="nav-icon">❓</span> 常见问题 FAQ</a>
+      <a href="#checklist" class="nav-item"><span class="nav-icon">✅</span> 上手检查清单</a>
+      <a href="#commands" class="nav-item"><span class="nav-icon">📋</span> 命令速查</a>
+      <a href="#troubleshoot" class="nav-item"><span class="nav-icon">🔧</span> 故障排查</a>
+      <a href="#roadmap" class="nav-item"><span class="nav-icon">🗺️</span> 学习路线</a>
+      <a href="#glossary" class="nav-item"><span class="nav-icon">📖</span> 术语表</a>
+    </div>
+  </nav>
+
+  <!-- ===== Main ===== -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-glow"></div>
+      <div class="hero-mascot">
+        <!-- Hermes mascot — winged helm with orbiting nodes -->
+        <svg role="img" aria-label="Hermes 吉祥物 · 翼盔与轨道" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f5b942"/><stop offset="0.5" stop-color="#ffd57a"/><stop offset="1" stop-color="#22d3ee"/>
+            </linearGradient>
+            <radialGradient id="mg2" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#f5b942" stop-opacity="0.5"/><stop offset="1" stop-color="#f5b942" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="100" cy="100" r="90" fill="url(#mg2)"/>
+          <!-- orbit ring -->
+          <ellipse cx="100" cy="100" rx="78" ry="30" stroke="url(#mg1)" stroke-width="1.5" stroke-opacity="0.4" transform="rotate(-20 100 100)"/>
+          <ellipse cx="100" cy="100" rx="78" ry="30" stroke="url(#mg1)" stroke-width="1.5" stroke-opacity="0.25" transform="rotate(25 100 100)"/>
+          <!-- helmet -->
+          <path d="M62 118c0-22 17-40 38-40s38 18 38 40" stroke="url(#mg1)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M100 62V48" stroke="url(#mg1)" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="100" cy="42" r="6" fill="url(#mg1)"/>
+          <!-- wings -->
+          <path d="M62 92c-12-4-20 0-24 8 8 0 12 2 16 6" stroke="url(#mg1)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M138 92c12-4 20 0 24 8-8 0-12 2-16 6" stroke="url(#mg1)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- neural core -->
+          <circle cx="86" cy="110" r="4" fill="#22d3ee"/>
+          <circle cx="114" cy="110" r="4" fill="#22d3ee"/>
+          <circle cx="100" cy="124" r="4" fill="url(#mg1)"/>
+          <path d="M86 110L114 110M86 110L100 124M114 110L100 124" stroke="#22d3ee" stroke-width="1.5" stroke-opacity="0.7"/>
+          <!-- small orbiting nodes -->
+          <circle cx="172" cy="86" r="3" fill="#ffd57a"/>
+          <circle cx="34" cy="118" r="3" fill="#22d3ee"/>
+          <circle cx="150" cy="148" r="2.5" fill="#a78bfa"/>
+        </svg>
+      </div>
+
+      <div class="hero-badge"><span class="dot"></span> 信使之神 · 你的私人 AI 助理</div>
+      <h1>从零掌握<br><span class="gradient">Hermes Agent</span></h1>
+      <p>一款开源、支持工具调用的 AI Agent 框架。它能读文件、跑命令、上网搜索、控制浏览器、连接微信/Telegram——本手册带你从安装到精通，一步步建立自己的智能助理。</p>
+      <div class="hero-cta">
+        <a href="#start" class="btn btn-primary">🚀 开始学习</a>
+        <a href="#roadmap" class="btn btn-ghost">🗺️ 查看学习路线</a>
+      </div>
+
+      <div class="term-demo">
+        <div class="term-bar">
+          <span class="tl" style="background:#ff5f56"></span>
+          <span class="tl" style="background:#ffbd2e"></span>
+          <span class="tl" style="background:#27c93f"></span>
+          <span style="margin-left:auto;color:var(--text-3);font-size:11px;font-family:var(--mono)">hermes — zsh</span>
+        </div>
+        <div class="term-body" id="termBody">
+          <div class="l-in">$ hermes chat</div>
+          <div class="l-out">⚡ Hermes Agent 已就绪，输入你的问题…</div>
+          <div class="l-in">&gt; 帮我分析当前项目结构</div>
+          <div class="l-ai">🤖 好的，我来扫描…</div>
+          <div class="l-ok">✓ 调用 terminal · read_file · execute_code</div>
+          <div class="l-out">这是一个 React + Vite 项目，含 23 个组件…</div>
+          <div class="l-dim">──────── 以上为演示，下面可亲自试试 ────────</div>
+          <div class="term-input-row" id="inputRow">
+            <span class="prompt-sym">&gt;</span>
+            <input class="term-input" id="termInput" type="text" autocomplete="off" spellcheck="false" placeholder="输入命令或问题，回车发送…" />
+          </div>
+        </div>
+        <div class="term-hint">试试输入：<b>hermes status</b> · <b>hermes doctor</b> · <b>帮我查下天气</b> · <b>help</b> · <b>clear</b>（↑↓ 调历史）</div>
+      </div>
+
+      <div class="hero-stats">
+        <div><div class="hero-stat-num">14</div><div class="hero-stat-label">章节</div></div>
+        <div><div class="hero-stat-num">40+</div><div class="hero-stat-label">命令</div></div>
+        <div><div class="hero-stat-num">4</div><div class="hero-stat-label">学习阶段</div></div>
+        <div><div class="hero-stat-num">∞</div><div class="hero-stat-label">可能</div></div>
+      </div>
+    </div>
+
+    <!-- ===== 0a. Why Hermes? Agent Loop ===== -->
+    <section id="why-hermes" class="reveal">
+      <div class="section-header">
+        <div class="section-num">为什么选 Hermes？</div>
+        <h2><span class="ico">🧬</span>Agent 正在思考... 而不仅仅是聊天</h2>
+      </div>
+      <p>普通 AI 聊天机器人 <strong>只能说话</strong>。Hermes 是一个 <strong style="color:var(--gold)">能动手的智能体</strong>——它会自己调用终端、读写文件、打开浏览器，直到任务完成。</p>
+
+      <div class="agent-loop" id="agentLoop">
+        <svg viewBox="0 0 820 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hermes Agent 循环：用户提问 → Agent 推理 → 调用工具 → 获取结果 → 回复用户">
+          <defs>
+            <linearGradient id="alg1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f5b942"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+            <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5d6680"/></marker>
+          </defs>
+          <!-- background pipeline track -->
+          <rect x="98" y="120" width="195" height="48" rx="24" fill="#141826" stroke="#2e3548" stroke-width="1.5"/>
+          <rect x="337" y="60" width="195" height="48" rx="24" fill="#141826" stroke="#2e3548" stroke-width="1.5"/>
+          <rect x="337" y="180" width="195" height="48" rx="24" fill="#141826" stroke="#2e3548" stroke-width="1.5"/>
+          <rect x="576" y="120" width="195" height="48" rx="24" fill="#141826" stroke="#2e3548" stroke-width="1.5"/>
+          <!-- arrows between nodes -->
+          <line x1="293" y1="144" x2="333" y2="84" stroke="#5d6680" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="293" y1="144" x2="333" y2="204" stroke="#5d6680" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="532" y1="84" x2="572" y2="144" stroke="#5d6680" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="532" y1="204" x2="572" y2="144" stroke="#5d6680" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- loop-back arrow -->
+          <path d="M771 144 Q810 144 810 240 Q810 340 740 340 L120 340 Q60 340 60 240 Q60 168 94 168" stroke="url(#alg1)" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arr)"/>
+          <text x="430" y="362" text-anchor="middle" fill="#8892aa" font-size="11" font-family="monospace">必要时循环多次，直到任务完成</text>
+
+          <!-- Step nodes -->
+          <g class="step-g">
+            <rect x="20" y="108" width="78" height="72" rx="14" fill="#161a28" stroke="#f5b942" stroke-width="2"/>
+            <text x="59" y="138" text-anchor="middle" font-size="22">🗣️</text>
+            <text x="59" y="162" text-anchor="middle" fill="#eef1f7" font-size="10.5" font-weight="600">用户提问</text>
+          </g>
+          <g class="step-g">
+            <circle cx="196" cy="144" r="36" fill="#161a28" stroke="#f5b942" stroke-width="2"/>
+            <text x="196" y="138" text-anchor="middle" font-size="20">🧠</text>
+            <text x="196" y="160" text-anchor="middle" fill="#eef1f7" font-size="9.5" font-weight="600">Agent 推理</text>
+          </g>
+          <g class="step-g">
+            <rect x="334" y="44" width="198" height="30" rx="8" fill="#161a28" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="433" y="64" text-anchor="middle" fill="#22d3ee" font-size="11" font-family="monospace">terminal · read_file · search</text>
+          </g>
+          <g class="step-g">
+            <rect x="334" y="188" width="198" height="30" rx="8" fill="#161a28" stroke="#22d3ee" stroke-width="1.5"/>
+            <text x="433" y="208" text-anchor="middle" fill="#22d3ee" font-size="11" font-family="monospace">browser · memory · code</text>
+          </g>
+          <text x="433" y="36" text-anchor="middle" fill="#8892aa" font-size="10">🔧 调用工具</text>
+          <text x="433" y="238" text-anchor="middle" fill="#8892aa" font-size="10">📥 获取结果</text>
+          <g class="step-g">
+            <rect x="576" y="108" width="170" height="72" rx="14" fill="#161a28" stroke="#34d399" stroke-width="2"/>
+            <text x="661" y="138" text-anchor="middle" font-size="20">✅</text>
+            <text x="661" y="160" text-anchor="middle" fill="#eef1f7" font-size="10.5" font-weight="600">回复用户</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="keypoint">
+        <div class="ki">🔑</div>
+        <div class="kt"><strong>核心区别：</strong>普通聊天机器人 = 一句话回复结束。Hermes = 思考 → 动手 → 检查 → 再动手 → 直到任务完成，整个过程你可能只问了一句话。</div>
+    
+
+      <h3 style="margin-top:28px">⚔️ Hermes vs 普通 AI 聊天机器人</h3>
+      <h3 style="margin-top:28px">⚔️ Hermes vs 普通 AI 聊天机器人</h3>
+      </div>
+      <p>同样问一句话，Hermes 能做到的，普通聊天机器人做不到。逐项对比——</p>
+      <div style="overflow-x:auto">
+        <table class="cap-table">
+          <thead>
+            <tr><th>能力维度</th><th style="font-size:15px">💬 普通 Chatbot</th><th style="font-size:15px;color:var(--gold)">⚡ Hermes Agent</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>自然语言对话</td><td class="check">✓</td><td class="check">✓</td></tr>
+            <tr><td>执行 Shell 命令</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>读写本地文件</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>上网搜索 & 抓取</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>控制浏览器（点按钮、填表单）</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>跨会话记住你</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>切换任何大模型</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>接入微信 / TG / Discord</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>运行 Python 代码</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            <tr><td>数据 100% 本地掌控</td><td class="cross">✗</td><td class="check">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:24px">💰 一次对话花多少钱？</h3>
+      <p>Hermes 本身<strong>免费开源</strong>。你只需付模型 API 费用——而且比你想象的便宜得多。</p>
+      <p style="font-size:13px;color:var(--text-3);margin-bottom:4px">以下价格均为<strong>每百万 token</strong>（约 75 万汉字），一次日常对话通常只需几千 token。</p>
+      <div class="price-grid">
+        <div class="price-card best">
+          <div class="price-model">DeepSeek V4</div>
+          <div class="price-amount">¥1<span class="unit">/ 百万</span></div>
+          <div class="price-desc">一次普通对话 ≈ ¥0.003</div>
+        </div>
+        <div class="price-card">
+          <div class="price-model">Gemini 2.5</div>
+          <div class="price-amount">免费<span class="unit">额度/天</span></div>
+          <div class="price-desc">有限额，日常够用</div>
+        </div>
+        <div class="price-card">
+          <div class="price-model">GPT-5</div>
+          <div class="price-amount">≈ ¥15<span class="unit">/ 百万</span></div>
+          <div class="price-desc">最强，适合重要任务</div>
+        </div>
+        <div class="price-card">
+          <div class="price-model">Claude Opus 4</div>
+          <div class="price-amount">≈ ¥75<span class="unit">/ 百万</span></div>
+          <div class="price-desc">代码和长文本最强</div>
+        </div>
+      </div>
+      <div class="keypoint" style="background:linear-gradient(90deg,var(--emerald-soft),transparent 80%);border-color:rgba(52,211,153,.3)">
+        <div class="ki">💡</div>
+        <div class="kt"><strong>真实花费参考：</strong>每天使用 Hermes 1–2 小时，用 DeepSeek 一个月大概 5–10 元，一杯咖啡的钱。</div>
+      </div>
+</section>
+
+    <!-- ===== 1. 快速开始 ===== -->
+    <section id="start" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 01</div>
+        <h2><span class="ico">🚀</span>快速开始</h2>
+      </div>
+      <p>Hermes 是 Nous Research 开发的 AI Agent 框架，核心理念：<strong>让 AI 真正"动手"做事</strong>，而不只是聊天。它通过工具（Tools）连接你的终端、文件系统、浏览器和消息平台。</p>
+
+      <h3>安装 Hermes</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>pip install hermes-agent</code><span class="desc">推荐 · 最简</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>curl -fsSL hermes-agent.nousresearch.com/install.sh | bash</code><span class="desc">官方脚本</span></div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><p><strong>验证安装：</strong>运行 <code>hermes version</code> 看版本号，<code>hermes doctor</code> 检查环境。</p></div>
+      </div>
+
+      <h3>首次启动流程</h3>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-step-num">STEP 1</div><div class="flow-step-title">安装</div><div class="flow-step-desc">pip install</div></div>
+        <div class="flow-step"><div class="flow-step-num">STEP 2</div><div class="flow-step-title">配 API Key</div><div class="flow-step-desc">设置模型供应商</div></div>
+        <div class="flow-step"><div class="flow-step-num">STEP 3</div><div class="flow-step-title">初始化</div><div class="flow-step-desc">hermes 自动建目录</div></div>
+        <div class="flow-step"><div class="flow-step-num">STEP 4</div><div class="flow-step-title">对话</div><div class="flow-step-desc">hermes chat</div></div>
+      </div>
+
+      <h3>配置你的第一个 API Key</h3>
+      <p>Hermes 支持多家模型供应商。三种方式任选其一：</p>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes setup</code><span class="desc">交互向导 · 新手首选</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>export DEEPSEEK_API_KEY="sk-xxx"</code><span class="desc">环境变量</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>echo 'DEEPSEEK_API_KEY=sk-xxx' &gt;&gt; ~/.hermes/.env</code><span class="desc">写入配置文件</span></div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">🔑</div>
+        <div class="callout-body"><p>支持供应商：DeepSeek、OpenAI、Anthropic (Claude)、Google Gemini、xAI Grok、Kimi、GLM、OpenRouter。运行 <code>hermes login</code> 登录 OAuth 供应商。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 2. 核心概念 ===== -->
+    <section id="concepts" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 02</div>
+        <h2><span class="ico">🧩</span>核心概念</h2>
+      </div>
+      <p>理解这 5 个核心概念，你就掌握了 Hermes 的运作方式。</p>
+
+      <div class="concept-grid">
+        <div class="concept-cell" data-flip><div class="concept-inner"><div class="concept-front"><div class="concept-emoji">🧠</div><div class="concept-name">Agent</div><div class="concept-tag">智能体 · 大脑</div></div><div class="concept-back"><div class="cb-text">自主调用工具、多轮思考、完成复杂任务。你给目标，它自己决定怎么干。</div><div class="cb-hint">点击翻回 ↺</div></div></div></div>
+        <div class="concept-cell n2" data-flip><div class="concept-inner"><div class="concept-front"><div class="concept-emoji">🛠️</div><div class="concept-name">Tools</div><div class="concept-tag">工具 · 手脚</div></div><div class="concept-back"><div class="cb-text">连接终端、文件、浏览器、网络的“手”。没有工具，Agent 只能聊天。</div><div class="cb-hint">点击翻回 ↺</div></div></div></div>
+        <div class="concept-cell n3" data-flip><div class="concept-inner"><div class="concept-front"><div class="concept-emoji">📚</div><div class="concept-name">Skills</div><div class="concept-tag">技能 · 专业知识</div></div><div class="concept-back"><div class="cb-text">预写的领域专家指南（Docker/Git...），装上立刻变专业。</div><div class="cb-hint">点击翻回 ↺</div></div></div></div>
+        <div class="concept-cell n4" data-flip><div class="concept-inner"><div class="concept-front"><div class="concept-emoji">💾</div><div class="concept-name">Memory</div><div class="concept-tag">记忆 · 跨会话</div></div><div class="concept-back"><div class="cb-text">MEMORY.md + USER.md，记住你的偏好，下次不用重复说。</div><div class="cb-hint">点击翻回 ↺</div></div></div></div>
+        <div class="concept-cell n5" data-flip><div class="concept-inner"><div class="concept-front"><div class="concept-emoji">🌐</div><div class="concept-name">Gateway</div><div class="concept-tag">网关 · 通信渠道</div></div><div class="concept-back"><div class="cb-text">连接微信/Telegram/Discord，变 7×24 在线助理。</div><div class="cb-hint">点击翻回 ↺</div></div></div></div>
+      </div>
+
+      <div class="keypoint">
+        <div class="ki">👆</div>
+        <div class="kt"><strong>交互提示：</strong>点击任一卡片<strong>翻转</strong>查看详解，再点翻回。</div>
+      </div>
+    </section>
+
+    <!-- ===== 3. 第一次对话 ===== -->
+    <section id="first-run" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 03</div>
+        <h2><span class="ico">💬</span>第一次对话</h2>
+      </div>
+
+      <h3>启动交互式对话</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes chat</code><span class="desc">最常用 · 进入交互</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes chat -m deepseek-v4-pro</code><span class="desc">指定模型</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes -z "帮我看看当前目录"</code><span class="desc">单次任务 · 不交互</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes chat --resume</code><span class="desc">恢复上次会话</span></div>
+
+      <h3>对话中能做什么</h3>
+      <div class="card">
+        <p><strong>🗣️ 你说：</strong>"帮我分析一下这个项目的代码结构"</p>
+        <p style="color:var(--gold-2);margin-top:10px"><strong>🤖 Hermes 会：</strong>调用 <code>terminal</code> 跑 <code>ls/find</code> → 用 <code>read_file</code> 读关键文件 → 调用 <code>execute_code</code> 统计 → 输出分析报告</p>
+      </div>
+      <div class="card">
+        <p><strong>🗣️ 你说：</strong>"查一下今天 Apple 的股价"</p>
+        <p style="color:var(--gold-2);margin-top:10px"><strong>🤖 Hermes 会：</strong>调用 <code>web_search</code> 搜索 → 用 <code>browser</code> 抓取数据 → 整理成表格回复你</p>
+      </div>
+
+      <h3>对话中的快捷命令</h3>
+      <table>
+        <tr><th>命令</th><th>作用</th></tr>
+        <tr><td><code>/reset</code></td><td>重置会话（清空上下文，重读 SOUL.md 和记忆）</td></tr>
+        <tr><td><code>/clear</code></td><td>清空当前对话历史</td></tr>
+        <tr><td><code>/model</code></td><td>切换当前会话的模型</td></tr>
+        <tr><td><code>/tools</code></td><td>查看当前可用的工具</td></tr>
+        <tr><td><code>/skills</code></td><td>查看已加载的技能</td></tr>
+        <tr><td><code>/exit</code> 或 <code>Ctrl+D</code></td><td>退出对话</td></tr>
+      </table>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">✨</div>
+        <div class="callout-body"><p><strong>新手建议：</strong>第一次先试试简单任务——"列出当前目录"、"读一下 README.md"、"帮我写个 Hello World"。熟悉后再挑战复杂任务。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 4. 配置文件 ===== -->
+    <section id="config" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 04</div>
+        <h2><span class="ico">⚙️</span>配置文件详解</h2>
+      </div>
+      <p>Hermes 的所有配置都集中在 <code>~/.hermes/config.yaml</code>。理解这个文件，你就能完全掌控你的 Agent。</p>
+
+      <h3>目录结构</h3>
+      <div class="tree">
+<span class="dir">~/.hermes/</span>                      <span class="note"># Hermes 的家目录</span>
+<span class="indent">├── <span class="file">config.yaml</span></span>         <span class="note"># 主配置文件</span>
+<span class="indent">├── <span class="file">.env</span></span>                  <span class="note"># 环境变量（API Keys 等）</span>
+<span class="indent">├── <span class="file">SOUL.md</span></span>               <span class="note"># 灵魂档案（人格设定）</span>
+<span class="indent">├── <span class="dir">memories/</span></span>
+<span class="indent2">│   ├── <span class="file">MEMORY.md</span></span>       <span class="note"># Agent 的记忆</span>
+<span class="indent2">│   └── <span class="file">USER.md</span></span>         <span class="note"># 用户画像</span>
+<span class="indent">├── <span class="dir">skills/</span></span>               <span class="note"># 已安装的技能</span>
+<span class="indent">├── <span class="dir">plugins/</span></span>              <span class="note"># 插件</span>
+<span class="indent">├── <span class="dir">sessions/</span></span>             <span class="note"># 会话历史</span>
+<span class="indent">├── <span class="dir">logs/</span></span>                 <span class="note"># 日志</span>
+<span class="indent">└── <span class="dir">profiles/</span></span>             <span class="note"># 多身份配置</span>
+      </div>
+
+      <h3>关键配置项</h3>
+      <pre><span class="code-label">config.yaml</span><button class="copy-btn" onclick="copyCode(this)">复制</button><code><span class="c"># 默认模型</span>
+<span class="k">model</span>:
+  <span class="o">default</span>: deepseek-v4-pro
+  <span class="o">provider</span>: deepseek
+
+<span class="c"># 启用的工具集</span>
+<span class="k">toolsets</span>:
+  - hermes-cli
+  - terminal
+  - file
+
+<span class="c"># Agent 行为</span>
+<span class="k">agent</span>:
+  <span class="o">max_turns</span>: <span class="s">150</span>              <span class="c"># 单次任务最大轮次</span>
+  <span class="o">reasoning_effort</span>: medium     <span class="c"># 推理强度</span>
+
+<span class="c"># 记忆系统</span>
+<span class="k">memory</span>:
+  <span class="o">memory_enabled</span>: <span class="s">true</span>
+  <span class="o">user_profile_enabled</span>: <span class="s">true</span>
+  <span class="o">memory_char_limit</span>: <span class="s">2200</span>     <span class="c"># 记忆最大字符数</span></code></pre>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">📝</div>
+        <div class="callout-body"><p>不要手动改 config.yaml，用 <code>hermes config</code> 命令交互式修改更安全。改完后运行 <code>hermes chat</code> 时新配置自动生效。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 5. 模型 ===== -->
+    <section id="models" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 05</div>
+        <h2><span class="ico">🧠</span>模型与供应商</h2>
+      </div>
+      <p>Hermes 不绑定单一模型，你可以自由切换。不同任务适合不同模型。</p>
+
+      <h3>切换模型</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes model</code><span class="desc">交互式选择</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes chat -m gpt-5</code><span class="desc">直接指定</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes fallback add deepseek-v4-pro</code><span class="desc">配置备用模型</span></div>
+
+      <h3>主流模型推荐</h3>
+      <p>点击标签切换模型，查看能力雷达：<strong style="color:var(--gold)">能力 / 性价比 / 速度 / 中文 / 上下文</strong>。</p>
+      <div class="tabs" id="modelTabs">
+        <button class="tab active" data-model="0">DeepSeek V4</button>
+        <button class="tab" data-model="1">GPT-5</button>
+        <button class="tab" data-model="2">Claude Opus 4</button>
+        <button class="tab" data-model="3">Gemini 2.5</button>
+        <button class="tab" data-model="4">Grok-4</button>
+      </div>
+
+      <div class="tab-panel active" data-panel="0">
+        <h4 style="color:var(--gold);margin-top:14px">DeepSeek V4 Pro · 性价比之王</h4>
+        <div class="spec-row"><div class="spec-head"><span class="name">综合能力</span><span class="val">90 / 100</span></div><div class="spec-track"><div class="spec-fill" data-w="90"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">性价比</span><span class="val">98 / 100</span></div><div class="spec-track"><div class="spec-fill emerald" data-w="98"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">响应速度</span><span class="val">85 / 100</span></div><div class="spec-track"><div class="spec-fill cyan" data-w="85"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">中文表现</span><span class="val">95 / 100</span></div><div class="spec-track"><div class="spec-fill violet" data-w="95"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">上下文长度</span><span class="val">128K</span></div><div class="spec-track"><div class="spec-fill rose" data-w="75"></div></div></div>
+        <p style="margin-top:14px;font-size:13.5px"><strong>适合：</strong>日常任务、写代码、中文场景。¥1/百万 token，便宜量又足。</p>
+      </div>
+      <div class="tab-panel" data-panel="1">
+        <h4 style="color:var(--gold);margin-top:14px">GPT-5 · 综合能力旗舰</h4>
+        <div class="spec-row"><div class="spec-head"><span class="name">综合能力</span><span class="val">98 / 100</span></div><div class="spec-track"><div class="spec-fill" data-w="98"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">性价比</span><span class="val">60 / 100</span></div><div class="spec-track"><div class="spec-fill emerald" data-w="60"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">响应速度</span><span class="val">80 / 100</span></div><div class="spec-track"><div class="spec-fill cyan" data-w="80"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">中文表现</span><span class="val">88 / 100</span></div><div class="spec-track"><div class="spec-fill violet" data-w="88"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">上下文长度</span><span class="val">256K</span></div><div class="spec-track"><div class="spec-fill rose" data-w="90"></div></div></div>
+        <p style="margin-top:14px;font-size:13.5px"><strong>适合：</strong>复杂推理、重要决策。价格高但最稳。</p>
+      </div>
+      <div class="tab-panel" data-panel="2">
+        <h4 style="color:var(--gold);margin-top:14px">Claude Opus 4 · 编码与长文本</h4>
+        <div class="spec-row"><div class="spec-head"><span class="name">综合能力</span><span class="val">95 / 100</span></div><div class="spec-track"><div class="spec-fill" data-w="95"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">性价比</span><span class="val">65 / 100</span></div><div class="spec-track"><div class="spec-fill emerald" data-w="65"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">响应速度</span><span class="val">78 / 100</span></div><div class="spec-track"><div class="spec-fill cyan" data-w="78"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">中文表现</span><span class="val">85 / 100</span></div><div class="spec-track"><div class="spec-fill violet" data-w="85"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">上下文长度</span><span class="val">200K</span></div><div class="spec-track"><div class="spec-fill rose" data-w="85"></div></div></div>
+        <p style="margin-top:14px;font-size:13.5px"><strong>适合：</strong>写代码、长文档分析、深度推理。</p>
+      </div>
+      <div class="tab-panel" data-panel="3">
+        <h4 style="color:var(--gold);margin-top:14px">Gemini 2.5 · 多模态免费额度</h4>
+        <div class="spec-row"><div class="spec-head"><span class="name">综合能力</span><span class="val">88 / 100</span></div><div class="spec-track"><div class="spec-fill" data-w="88"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">性价比</span><span class="val">90 / 100</span></div><div class="spec-track"><div class="spec-fill emerald" data-w="90"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">响应速度</span><span class="val">92 / 100</span></div><div class="spec-track"><div class="spec-fill cyan" data-w="92"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">中文表现</span><span class="val">82 / 100</span></div><div class="spec-track"><div class="spec-fill violet" data-w="82"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">上下文长度</span><span class="val">1M</span></div><div class="spec-track"><div class="spec-fill rose" data-w="100"></div></div></div>
+        <p style="margin-top:14px;font-size:13.5px"><strong>适合：</strong>图像理解、超长文档。1M 上下文 + 免费额度。</p>
+      </div>
+      <div class="tab-panel" data-panel="4">
+        <h4 style="color:var(--gold);margin-top:14px">Grok-4 · 实时信息</h4>
+        <div class="spec-row"><div class="spec-head"><span class="name">综合能力</span><span class="val">86 / 100</span></div><div class="spec-track"><div class="spec-fill" data-w="86"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">性价比</span><span class="val">55 / 100</span></div><div class="spec-track"><div class="spec-fill emerald" data-w="55"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">响应速度</span><span class="val">88 / 100</span></div><div class="spec-track"><div class="spec-fill cyan" data-w="88"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">中文表现</span><span class="val">75 / 100</span></div><div class="spec-track"><div class="spec-fill violet" data-w="75"></div></div></div>
+        <div class="spec-row"><div class="spec-head"><span class="name">上下文长度</span><span class="val">128K</span></div><div class="spec-track"><div class="spec-fill rose" data-w="75"></div></div></div>
+        <p style="margin-top:14px;font-size:13.5px"><strong>适合：</strong>新闻、社交、实时信息查询。</p>
+      </div>
+
+      <h3>配置备用模型（Fallback）</h3>
+      <p>当主模型不可用时，Hermes 会自动按顺序尝试备用模型，保证任务不中断。用 <code>hermes fallback list</code> 查看当前链路。</p>
+    </section>
+
+    <!-- ===== 6. 工具系统 ===== -->
+    <section id="tools" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 06</div>
+        <h2><span class="ico">🛠️</span>工具系统</h2>
+      </div>
+      <p>工具是 Hermes 最强大的能力来源。你可以按需启用或禁用工具集。</p>
+
+      <h3>查看与管理工具</h3>
+      <p>在 <code>config.yaml</code> 的 <code>toolsets</code> 里按需启用工具集，<code>hermes tools</code> 交互式查看。</p>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes tools</code><span class="desc">交互式管理（需在终端运行）</span></div>
+
+      <h3>核心工具矩阵</h3>
+      <div class="tool-cat">
+        <div class="tool-cat-head">⚡ 系统 <span class="badge">terminal · file</span></div>
+        <div class="tool-chips">
+          <div class="tool-chip"><span class="e">⌨️</span> terminal<span class="tip">执行 shell 命令 · ls/git/python</span></div>
+          <div class="tool-chip"><span class="e">📄</span> read_file<span class="tip">读取文件内容</span></div>
+          <div class="tool-chip"><span class="e">✏️</span> write_file<span class="tip">写入 / 覆盖文件</span></div>
+          <div class="tool-chip"><span class="e">🔧</span> patch<span class="tip">精确查找替换编辑</span></div>
+          <div class="tool-chip"><span class="e">🔍</span> search_files<span class="tip">ripgrep 内容搜索</span></div>
+        </div>
+      </div>
+      <div class="tool-cat">
+        <div class="tool-cat-head">🌐 网络 <span class="badge">web · browser</span></div>
+        <div class="tool-chips">
+          <div class="tool-chip"><span class="e">🔎</span> web_search<span class="tip">Tavily / Firecrawl 网络搜索</span></div>
+          <div class="tool-chip"><span class="e">🧭</span> browser_navigate<span class="tip">打开网页 · CDP 控制</span></div>
+          <div class="tool-chip"><span class="e">👆</span> browser_click<span class="tip">点击页面元素</span></div>
+          <div class="tool-chip"><span class="e">🌐</span> web_extract<span class="tip">提取网页正文</span></div>
+        </div>
+      </div>
+      <div class="tool-cat">
+        <div class="tool-cat-head">🧠 智能 <span class="badge">memory · code</span></div>
+        <div class="tool-chips">
+          <div class="tool-chip"><span class="e">💾</span> memory<span class="tip">持久化记忆读写</span></div>
+          <div class="tool-chip"><span class="e">🐍</span> execute_code<span class="tip">运行 Python 代码</span></div>
+          <div class="tool-chip"><span class="e">🎨</span> image_generate<span class="tip">FAL 文生图</span></div>
+          <div class="tool-chip"><span class="e">🖥️</span> computer_use<span class="tip">控制桌面（macOS）</span></div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body"><p><strong>安全提示：</strong><code>terminal</code> 和 <code>file</code> 工具有完整系统权限。生产环境建议开启 <code>write_approval: true</code>，让危险操作需人工确认。</p></div>
+      </div>
+
+      <h3>能力雷达 · 工具 vs 纯聊天</h3>
+      <div class="radar-wrap">
+        <svg role="img" aria-label="Hermes 工具能力六轴雷达图" class="radar-svg" viewBox="0 0 280 280" id="radarSvg">
+          <defs>
+            <radialGradient id="radarFill">
+              <stop offset="0%" stop-color="#f5b942" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.25"/>
+            </radialGradient>
+          </defs>
+          <!-- grid hexagon rings -->
+          <g fill="none" stroke="#2e3548" stroke-width="1">
+            <polygon points="140,30 237,86 237,194 140,250 43,194 43,86"/>
+            <polygon points="140,57 213,99 213,181 140,223 67,181 67,99"/>
+            <polygon points="140,84 190,113 190,167 140,196 90,167 90,113"/>
+            <polygon points="140,111 167,127 167,153 140,169 113,153 113,127"/>
+          </g>
+          <!-- axes -->
+          <g stroke="#2e3548" stroke-width="1">
+            <line x1="140" y1="140" x2="140" y2="30"/>
+            <line x1="140" y1="140" x2="237" y2="86"/>
+            <line x1="140" y1="140" x2="237" y2="194"/>
+            <line x1="140" y1="140" x2="140" y2="250"/>
+            <line x1="140" y1="140" x2="43" y2="194"/>
+            <line x1="140" y1="140" x2="43" y2="86"/>
+          </g>
+          <!-- data polygon: full tools (animated on reveal) -->
+          <polygon id="radarTools" points="140,140 140,140 140,140 140,140 140,140 140,140" fill="url(#radarFill)" stroke="#f5b942" stroke-width="2"/>
+          <!-- labels -->
+          <text x="140" y="22" text-anchor="middle" fill="#aab2c5" font-size="11" font-family="monospace">终端执行</text>
+          <text x="247" y="84" text-anchor="middle" fill="#aab2c5" font-size="11" font-family="monospace">文件操作</text>
+          <text x="247" y="200" text-anchor="middle" fill="#aab2c5" font-size="11" font-family="monospace">网络浏览</text>
+          <text x="140" y="265" text-anchor="middle" fill="#aab2c5" font-size="11" font-family="monospace">记忆持久</text>
+          <text x="33" y="200" text-anchor="middle" fill="#aab2c5" font-size="11" font-family="monospace">代码运行</text>
+          <text x="33" y="84" text-anchor="middle" fill="#aab2c5" font-size="11" font-family="monospace">桌面控制</text>
+        </svg>
+        <div class="radar-legend">
+          <p style="font-size:13.5px;margin-bottom:6px">纯聊天的 AI 只能说话；<strong style="color:var(--gold)">装上工具的 Hermes</strong> 能动手干活。六轴能力对比：</p>
+          <div class="radar-leg-item"><span class="radar-leg-dot" style="background:var(--gold)"></span> 启用工具 · 能力拉满</div>
+          <div class="radar-leg-item"><span class="radar-leg-dot" style="background:var(--border-2)"></span> 纯聊天 · 只能输出文字</div>
+          <p style="margin-top:10px;font-size:12px;color:var(--text-3)">滚动到此区域，雷达图会从中心<strong style="color:var(--gold)">动态展开</strong>。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 7. 技能 ===== -->
+    <section id="skills" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 07</div>
+        <h2><span class="ico">📚</span>技能系统 Skills</h2>
+      </div>
+      <p>技能是打包好的"专家知识"。安装一个技能，Agent 在相关领域立刻变专业。</p>
+
+      <h3>安装与管理技能</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes skills browse</code><span class="desc">浏览技能市场</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes skills search docker</code><span class="desc">搜索技能</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes skills install git</code><span class="desc">安装技能</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes skills list</code><span class="desc">查看已安装</span></div>
+
+      <h3>技能如何工作</h3>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-title">扫描</div><div class="flow-step-desc">匹配任务关键词</div></div>
+        <div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-title">加载</div><div class="flow-step-desc">读取 SKILL.md</div></div>
+        <div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-title">应用</div><div class="flow-step-desc">按指南执行</div></div>
+        <div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-title">沉淀</div><div class="flow-step-desc">完成任务后更新</div></div>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><p><strong>创建自己的技能：</strong>完成一个复杂任务后，告诉 Hermes"把这个流程保存成技能"，下次类似任务就能复用。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 8. 记忆 ===== -->
+    <section id="memory" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 08</div>
+        <h2><span class="ico">💾</span>记忆系统</h2>
+      </div>
+      <p>记忆让 Hermes 跨会话"记住"你。这是它越用越好用的关键。</p>
+
+      <h3>两类记忆文件</h3>
+      <div class="card card-emerald">
+        <h4 style="margin-top:0">📘 MEMORY.md — Agent 的笔记本</h4>
+        <p>记录 Agent 自己学到的东西：你的项目结构、工具的怪癖、踩过的坑。用 <code>§</code> 符号分隔条目。</p>
+      </div>
+      <div class="card card-emerald">
+        <h4 style="margin-top:0">📗 USER.md — 对你的了解</h4>
+        <p>记录关于你的信息：你的偏好、工作习惯、沟通风格。让回复更个性化。</p>
+      </div>
+
+      <h3>记忆如何运作</h3>
+      <div class="mem-cycle">
+        <svg role="img" aria-label="Hermes 记忆系统四节点循环图" viewBox="0 0 520 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mcg" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#f5b942"/><stop offset="0.5" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="#5d6680"/>
+            </marker>
+          </defs>
+          <!-- connecting loop path -->
+          <path d="M90 100 Q90 40 180 40 L340 40 Q430 40 430 100 Q430 160 340 160 L180 160 Q90 160 90 100 Z" stroke="url(#mcg)" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="6 5" fill="none">
+            <animate attributeName="stroke-dashoffset" from="0" to="-22" dur="1.5s" repeatCount="indefinite"/>
+          </path>
+          <!-- nodes -->
+          <g class="mem-node">
+            <circle cx="90" cy="100" r="34" fill="#161a28" stroke="#f5b942" stroke-width="2"/>
+            <text x="90" y="96" text-anchor="middle" font-size="18">🚀</text>
+            <text x="90" y="118" text-anchor="middle" font-size="9.5" fill="#aab2c5" font-family="monospace">启动</text>
+          </g>
+          <g class="mem-node">
+            <circle cx="260" cy="40" r="34" fill="#161a28" stroke="#f5b942" stroke-width="2"/>
+            <text x="260" y="36" text-anchor="middle" font-size="18">📥</text>
+            <text x="260" y="58" text-anchor="middle" font-size="9.5" fill="#aab2c5" font-family="monospace">注入提示词</text>
+          </g>
+          <g class="mem-node">
+            <circle cx="430" cy="100" r="34" fill="#161a28" stroke="#34d399" stroke-width="2"/>
+            <text x="430" y="96" text-anchor="middle" font-size="18">💾</text>
+            <text x="430" y="118" text-anchor="middle" font-size="9.5" fill="#aab2c5" font-family="monospace">会话中写入</text>
+          </g>
+          <g class="mem-node">
+            <circle cx="260" cy="160" r="34" fill="#161a28" stroke="#a78bfa" stroke-width="2"/>
+            <text x="260" y="156" text-anchor="middle" font-size="18">🔄</text>
+            <text x="260" y="178" text-anchor="middle" font-size="9.5" fill="#aab2c5" font-family="monospace">下次生效</text>
+          </g>
+        </svg>
+      </div>
+      <div class="keypoint" style="background:linear-gradient(90deg,var(--emerald-soft),transparent 80%);border-color:rgba(52,211,153,.3)">
+        <div class="ki">🔒</div>
+        <div class="kt"><strong>关键设计：</strong>记忆在会话中是<strong style="color:var(--emerald)">冻结</strong>的——保护提示词缓存；写入的更新在<strong style="color:var(--emerald)">下次会话</strong>才生效。</div>
+      </div>
+
+      <h3>管理记忆</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes memory status</code><span class="desc">查看记忆状态</span></div>
+      <p>在对话中，Agent 会自动调用 <code>memory</code> 工具——<code>add</code> 添加 / <code>replace</code> 替换 / <code>remove</code> 删除。你也可以直接用自然语言：</p>
+      <div class="cmd-line"><span class="prompt">🗣️</span><code>“记住我喜欢简洁的回复”</code><span class="desc">自然语言记忆</span></div>
+      <div class="cmd-line"><span class="prompt">🗣️</span><code>“忘掉关于 XX 的记忆”</code><span class="desc">自然语言删除</span></div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">🔐</div>
+        <div class="callout-body"><p><strong>隐私：</strong>记忆文件只存在本地 <code>~/.hermes/memories/</code>。你可以随时手动编辑或删除。Hermes 还支持外部记忆供应商（mem0、honcho 等）。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 9. Profile ===== -->
+    <section id="profiles" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 09</div>
+        <h2><span class="ico">🎭</span>多身份 Profile 系统</h2>
+      </div>
+      <p>Profile 让你拥有多个完全独立的 Hermes 实例——不同的灵魂、不同的记忆、不同的技能、甚至不同的模型。</p>
+
+      <h3>典型场景</h3>
+      <div class="card">
+        <p><span class="pill pill-acc">default</span> 你的通用助理——日常问答、写代码</p>
+        <p><span class="pill pill-em">finance</span> 财务专家——拼多多数据分析、报表</p>
+        <p><span class="pill pill-bl">biz-analyst</span> 商业分析师——市场研究、竞品分析</p>
+        <p><span class="pill pill-pp">ceo-aide</span> CEO 助理——日程、邮件、决策支持</p>
+      </div>
+
+      <h3>Profile 管理</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes profile list</code><span class="desc">列出所有身份</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes profile create my-assistant</code><span class="desc">创建新身份</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes profile use finance</code><span class="desc">切换默认身份</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes --profile finance chat</code><span class="desc">单次使用某身份</span></div>
+
+      <h3>每个 Profile 独立拥有</h3>
+      <div class="tree">
+<span class="dir">~/.hermes/profiles/finance/</span>
+<span class="indent">├── <span class="file">SOUL.md</span></span>          <span class="note"># 这个身份的人格</span>
+<span class="indent">├── <span class="file">config.yaml</span></span>       <span class="note"># 独立配置</span>
+<span class="indent">├── <span class="dir">memories/</span></span>         <span class="note"># 独立记忆</span>
+<span class="indent">│   ├── <span class="file">MEMORY.md</span></span>
+<span class="indent">│   └── <span class="file">USER.md</span></span>
+<span class="indent">├── <span class="dir">skills/</span></span>           <span class="note"># 独立技能</span>
+<span class="indent">└── <span class="dir">sessions/</span></span>         <span class="note"># 独立会话</span>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body"><p><strong>最佳实践：</strong>为每个不同用途创建独立 Profile。比如工作用一个、生活用一个、特定项目用一个。互不干扰，各自进化。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 10. SOUL ===== -->
+    <section id="soul" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 10</div>
+        <h2><span class="ico">🕯️</span>灵魂档案 SOUL.md</h2>
+      </div>
+      <p><code>SOUL.md</code> 是 Hermes 的"灵魂"——它定义了 Agent 的人格、说话风格、专业领域、行为边界。这是让通用 AI 变成"你的专属助理"的关键。</p>
+
+      <h3>SOUL.md 的结构</h3>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-big" style="color:var(--gold)">📋 身份</div><div class="stat-cap">你是谁 · 使命</div></div>
+        <div class="stat-box"><div class="stat-big" style="color:var(--cyan)">🎨 风格</div><div class="stat-cap">说话语气 · 习惯</div></div>
+        <div class="stat-box"><div class="stat-big" style="color:var(--violet)">⚖️ 准则</div><div class="stat-cap">✅ 应做 · ❌ 禁做</div></div>
+      </div>
+
+      <h3>如何编辑</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>nano ~/.hermes/SOUL.md</code><span class="desc">编辑默认身份</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>nano ~/.hermes/profiles/finance/SOUL.md</code><span class="desc">编辑 finance 身份</span></div>
+      <div class="keypoint">
+        <div class="ki">🔄</div>
+        <div class="kt">改完后在对话里输入 <strong>/reset</strong>，或重启 <strong>hermes</strong>，新人格立即生效。</div>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">✨</div>
+        <div class="callout-body"><p><strong>创意玩法：</strong>你可以把 SOUL.md 写成"资深股票顾问"、"冷酷的代码审查员"、"温暖的心理倾听者"——同一个 Hermes，千变万化的人格。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 11. 网关 ===== -->
+    <section id="gateway" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 11</div>
+        <h2><span class="ico">🌐</span>网关与消息平台</h2>
+      </div>
+      <p>网关让 Hermes 变成一个 7×24 在线的消息助理——你在微信、Telegram、Discord 上发消息，它就响应。</p>
+
+      <h3>启动网关</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes gateway start</code><span class="desc">后台启动</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes gateway status</code><span class="desc">查看状态</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes gateway run</code><span class="desc">前台运行 · 看实时日志</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes gateway stop</code><span class="desc">停止</span></div>
+
+      <h3>支持的平台</h3>
+      <table>
+        <tr><th>平台</th><th>配置命令</th><th>说明</th></tr>
+        <tr><td><span class="pill pill-em">微信</span></td><td><code>hermes weixin</code></td><td>通过 iLink 接入</td></tr>
+        <tr><td><span class="pill pill-bl">Telegram</span></td><td>配置 Bot Token</td><td>最稳定</td></tr>
+        <tr><td><span class="pill pill-pp">Discord</span></td><td>配置 Bot Token</td><td>支持频道/私聊</td></tr>
+        <tr><td><span class="pill pill-acc">Slack</span></td><td><code>hermes slack</code></td><td>工作场景</td></tr>
+        <tr><td>WhatsApp</td><td><code>hermes whatsapp</code></td><td>需扫码</td></tr>
+      </table>
+
+      <h3>微信接入示例</h3>
+      <p>在 <code>~/.hermes/.env</code> 中配置以下变量：</p>
+      <div class="cmd-line"><span class="prompt">🔑</span><code>WEIXIN_ACCOUNT_ID · WEIXIN_TOKEN · WEIXIN_BASE_URL</code><span class="desc">三项核心配置</span></div>
+      <div class="keypoint" style="background:linear-gradient(90deg,var(--cyan-soft),transparent 80%);border-color:rgba(34,211,238,.3)">
+        <div class="ki">⚙️</div>
+        <div class="kt"><strong>WEIXIN_DM_POLICY：</strong><code>pairing</code>（需配对才能私聊）或 <code>open</code>（所有人可用）。</div>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body"><p><strong>常见问题：</strong>网关启动失败提示 "token already in use"？说明有僵尸进程。用 <code>hermes gateway stop</code> 停掉旧的，或 <code>kill -9 &lt;PID&gt;</code> 强制清理后再启动。</p></div>
+      </div>
+    </section>
+    <!-- ===== 15. 进阶能力 ===== -->
+    <section id="advanced" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 12</div>
+        <h2><span class="ico">🚀</span>进阶能力：定时·安全·调度</h2>
+      </div>
+      <p>掌握以下三个功能，Hermes 从「工具」升级为<strong style="color:var(--gold)">自动化平台</strong>。</p>
+
+      <h3>⏰ Cron 定时任务</h3>
+      <p>让 Hermes 每天自动执行任务——比如早上 8 点下载报表、每 3 天分析一次数据、每周一生成周报。</p>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes cron list</code><span class="desc">列出所有定时任务</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes cron add --cron "0 8 * * *" --prompt "下载昨日数据"</code><span class="desc">添加每日 8:00 任务</span></div>
+      <div class="keypoint" style="background:linear-gradient(90deg,var(--cyan-soft),transparent 80%);border-color:rgba(34,211,238,.3)">
+        <div class="ki">💡</div>
+        <div class="kt">配合 finance profile，让 PDD-FinAgent 每天自动采集数据、T+0/T+3/T+6 三阶段分析，全程无需人工干预。</div>
+      </div>
+
+      <h3 style="margin-top:26px">🔒 Write Approval 安全审批</h3>
+      <p>启动 Hermes 后，任何写入/删除操作都会先弹窗让你确认。生产环境必开。</p>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes config set write_approval true</code><span class="desc">开启写入审批</span></div>
+      <div class="keypoint" style="background:linear-gradient(90deg,var(--rose-soft),transparent 80%);border-color:rgba(251,113,133,.3)">
+        <div class="ki">🛡️</div>
+        <div class="kt">开启后，Agent 每次想 <code>write_file</code> / <code>terminal rm</code> 都会先问你，杜绝误删。配合 AgentGuard 扫描第三方代码，双重保险。</div>
+      </div>
+
+      <h3 style="margin-top:26px">🔗 Delegation 子 Agent 调度</h3>
+      <p>让 Hermes 把子任务派发给专业 Agent——写代码交给 <strong style="color:var(--violet)">Codex</strong>，审查代码交给 <strong style="color:var(--cyan)">Claude Code</strong>，分析数据自己来。一个 Master Agent 调多个专业子 Agent。</p>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes config set delegation.enabled true</code><span class="desc">开启子 Agent 调度</span></div>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-step-num">Master</div><div class="flow-step-title">你</div><div class="flow-step-desc">一句话任务</div></div>
+        <div class="flow-step"><div class="flow-step-num">Route</div><div class="flow-step-title">Hermes</div><div class="flow-step-desc">拆解 + 分发</div></div>
+        <div class="flow-step"><div class="flow-step-num">Codex</div><div class="flow-step-title">写代码</div><div class="flow-step-desc">专业编码</div></div>
+        <div class="flow-step"><div class="flow-step-num">Report</div><div class="flow-step-title">汇总</div><div class="flow-step-desc">Hermes 整合输出</div></div>
+      </div>
+    </section>
+
+
+
+    <!-- ===== 12. 命令速查 ===== -->
+    <section id="commands" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 13</div>
+        <h2><span class="ico">📋</span>命令速查表</h2>
+      </div>
+
+      <h3>核心命令</h3>
+      <div class="cmd-grid">
+        <div class="cmd-card"><code>hermes chat</code><span>交互式对话</span></div>
+        <div class="cmd-card"><code>hermes -z "任务"</code><span>单次任务</span></div>
+        <div class="cmd-card"><code>hermes status</code><span>查看状态</span></div>
+        <div class="cmd-card"><code>hermes doctor</code><span>诊断环境</span></div>
+        <div class="cmd-card"><code>hermes setup</code><span>配置向导</span></div>
+        <div class="cmd-card"><code>hermes version</code><span>版本信息</span></div>
+      </div>
+
+      <h3>模型与配置</h3>
+      <div class="cmd-grid">
+        <div class="cmd-card"><code>hermes model</code><span>切换模型</span></div>
+        <div class="cmd-card"><code>hermes config</code><span>编辑配置</span></div>
+        <div class="cmd-card"><code>hermes login</code><span>登录供应商</span></div>
+        <div class="cmd-card"><code>hermes fallback</code><span>备用模型</span></div>
+        <div class="cmd-card"><code>hermes tools</code><span>管理工具</span></div>
+        <div class="cmd-card"><code>hermes memory</code><span>记忆管理</span></div>
+      </div>
+
+      <h3>身份与技能</h3>
+      <div class="cmd-grid">
+        <div class="cmd-card"><code>hermes profile list</code><span>列出身份</span></div>
+        <div class="cmd-card"><code>hermes profile use &lt;n&gt;</code><span>切换身份</span></div>
+        <div class="cmd-card"><code>hermes profile create</code><span>创建身份</span></div>
+        <div class="cmd-card"><code>hermes skills list</code><span>已装技能</span></div>
+        <div class="cmd-card"><code>hermes skills install</code><span>安装技能</span></div>
+        <div class="cmd-card"><code>hermes skills search</code><span>搜索技能</span></div>
+      </div>
+
+      <h3>网关与会话</h3>
+      <div class="cmd-grid">
+        <div class="cmd-card"><code>hermes gateway start</code><span>启动网关</span></div>
+        <div class="cmd-card"><code>hermes gateway status</code><span>网关状态</span></div>
+        <div class="cmd-card"><code>hermes gateway stop</code><span>停止网关</span></div>
+        <div class="cmd-card"><code>hermes sessions list</code><span>历史会话</span></div>
+        <div class="cmd-card"><code>hermes cron list</code><span>定时任务</span></div>
+        <div class="cmd-card"><code>hermes logs</code><span>查看日志</span></div>
+      </div>
+
+      <h3>对话内快捷命令</h3>
+      <table>
+        <tr><th>命令</th><th>作用</th></tr>
+        <tr><td><code>/reset</code></td><td>重置会话，重读 SOUL.md 和记忆</td></tr>
+        <tr><td><code>/clear</code></td><td>清空对话历史</td></tr>
+        <tr><td><code>/model &lt;名&gt;</code></td><td>切换模型</td></tr>
+        <tr><td><code>/tools</code></td><td>查看工具</td></tr>
+        <tr><td><code>/skills</code></td><td>查看技能</td></tr>
+        <tr><td><code>/help</code></td><td>查看所有命令</td></tr>
+        <tr><td><code>Ctrl+C</code></td><td>中断当前任务</td></tr>
+        <tr><td><code>Ctrl+D</code></td><td>退出对话</td></tr>
+      </table>
+    </section>
+
+    <!-- ===== 13. 故障排查 ===== -->
+    <section id="troubleshoot" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 14</div>
+        <h2><span class="ico">🔧</span>故障排查</h2>
+      </div>
+
+      <h3>常见问题与解决方案</h3>
+
+      <div class="card card-rose">
+        <h4 style="margin-top:0">❌ 网关启动失败："token already in use"</h4>
+        <p><strong>原因：</strong>有僵尸网关进程占用资源。<strong>解决：</strong>依次执行——</p>
+        <div class="cmd-line"><span class="prompt">1.</span><code>hermes gateway stop</code><span class="desc">停掉旧网关</span></div>
+        <div class="cmd-line"><span class="prompt">2.</span><code>kill -9 $(pgrep -f "gateway run")</code><span class="desc">强制清理僵尸进程</span></div>
+        <div class="cmd-line"><span class="prompt">3.</span><code>rm ~/.hermes/gateway.*</code><span class="desc">清理状态文件</span></div>
+        <div class="cmd-line"><span class="prompt">4.</span><code>hermes gateway start</code><span class="desc">重新启动</span></div>
+      </div>
+
+      <div class="card card-rose">
+        <h4 style="margin-top:0">❌ 模型调用失败：401 / API Key 错误</h4>
+        <p><strong>解决：</strong></p>
+        <div class="cmd-line"><span class="prompt">$</span><code>hermes status | grep -i key</code><span class="desc">检查 key 是否配置</span></div>
+        <div class="cmd-line"><span class="prompt">$</span><code>hermes login</code><span class="desc">重新设置</span></div>
+      </div>
+
+      <div class="card card-rose">
+        <h4 style="margin-top:0">❌ Agent 不调用工具，只会聊天</h4>
+        <p><strong>原因：</strong>工具集未启用，或模型不支持工具调用。</p>
+        <p><strong>解决：</strong>检查 <code>config.yaml</code> 的 <code>toolsets</code> 是否包含需要的工具集，确保用的是支持 function calling 的模型。</p>
+      </div>
+
+      <div class="card card-rose">
+        <h4 style="margin-top:0">❌ 记忆没生效</h4>
+        <p><strong>原因：</strong>记忆在会话中是冻结的，需要新会话才注入。</p>
+        <p><strong>解决：</strong>在对话中输入 <code>/reset</code>，或重启 <code>hermes chat</code>。</p>
+      </div>
+
+      <h3>诊断工具</h3>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes doctor</code><span class="desc">全面诊断环境</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes status</code><span class="desc">查看完整状态</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes prompt-size</code><span class="desc">提示词大小拆解</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes logs</code><span class="desc">查看日志</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><code>hermes debug</code><span class="desc">导出诊断信息（求助用）</span></div>
+    </section>
+
+    
+
+    <!-- ===== 15. 实战案例 ===== -->
+    <section id="cases" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 15</div>
+        <h2><span class="ico">🎯</span>实战案例</h2>
+      </div>
+      <p>Hermes 在这些场景里能真正帮你省时间。点击 <strong style="color:var(--gold)">智能终端</strong> 试试同类任务。</p>
+
+      <div class="case-grid">
+        <div class="case-card">
+          <div class="case-emoji">📦</div>
+          <div class="case-title">财务数据采集</div>
+          <div class="case-desc">自动登录拼多多后台 → 下载昨日对账报表 → 解析成结构化数据并存档。</div>
+          <div class="case-chain">browser → execute_code → file</div>
+          <div class="case-time">⏱ 手工 20 分钟 → Hermes 自动 1 分钟</div>
+        </div>
+        <div class="case-card">
+          <div class="case-emoji">🔍</div>
+          <div class="case-title">竞品调研</div>
+          <div class="case-desc">搜索某品类 Top 10 竞品，抓取价格、销量、评价，生成对比报告。</div>
+          <div class="case-chain">web_search → browser → execute_code</div>
+          <div class="case-time">⏱ 手工 2 小时 → Hermes 5 分钟</div>
+        </div>
+        <div class="case-card">
+          <div class="case-emoji">💻</div>
+          <div class="case-title">代码项目重构</div>
+          <div class="case-desc">扫描整个代码库，找出重复逻辑，提交重构方案并直接修改文件。</div>
+          <div class="case-chain">search_files → read_file → patch</div>
+          <div class="case-time">⏱ 手工 半天 → Hermes 10 分钟</div>
+        </div>
+        <div class="case-card">
+          <div class="case-emoji">📧</div>
+          <div class="case-title">微信智能助理</div>
+          <div class="case-desc">接入微信，记住你的习惯，消息里随问随答，还能主动推送报告。</div>
+          <div class="case-chain">gateway → memory → terminal</div>
+          <div class="case-time">⏱ 24 小时在线，不用打开电脑</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 16. 真实对话实录 ===== -->
+    <section id="chat-demo" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 16</div>
+        <h2><span class="ico">💬</span>真实对话实录</h2>
+      </div>
+      <p>这是 Hermes <strong style="color:var(--gold)">代替你操作拼多多后台</strong>的真实对话。你只问了一句话，它完成了登录、下载、解析、写报告四步——全自动。</p>
+
+      <div class="chat-demo" id="chatDemo">
+        <div class="chat-msg user">
+          <div class="meta">👤 你 · 09:32</div>
+          帮我下载拼多多昨天的对账报表，分析一下退款率有没有异常。
+        </div>
+        <div class="chat-msg hermes">
+          <div class="meta">⚡ Hermes · 09:32</div>
+          收到。我来处理——先登录商家后台。
+        </div>
+        <div class="chat-msg hermes">
+          <div class="meta">⚡ Hermes · 09:32</div>
+          <span class="chat-tool">✓ browser_navigate</span> 已打开 mms.pinduoduo.com<br>
+          <span class="chat-tool">✓ browser_click</span> 进入「发货管理 → 订单查询」
+        </div>
+        <div class="chat-msg hermes">
+          <div class="meta">⚡ Hermes · 09:33</div>
+          <span class="chat-tool">✓ browser_click</span> 选择「昨日」→「全部状态」→「查询」<br>
+          <span class="chat-tool">✓ browser_click</span> 「批量导出」→「对账报表」✅ 下载成功
+        </div>
+        <div class="chat-msg hermes">
+          <div class="meta">⚡ Hermes · 09:33</div>
+          <span class="chat-tool">✓ execute_code</span> 正在解析 Excel 数据…<br>
+          <span class="chat-tool">✓ write_file</span> 已保存至 ~/pdd/reports/report_0612.json
+        </div>
+        <div class="chat-msg hermes">
+          <div class="meta">⚡ Hermes · 09:34</div>
+          📊 <strong>分析完成：</strong><br>
+          • GMV：¥48,320（环比 ↑3.2%）<br>
+          • 退款率：3.5%（高于基线 2.8%，⚠️ 中等异常）<br>
+          • 异常关联 SKU：A-233（近 7 天退款集中）<br>
+          <br>
+          🟡 建议关注 SKU A-233 的质量问题。已生成完整分析报告在 ~/pdd/reports/。
+        </div>
+      </div>
+
+      <div class="keypoint" style="margin-top:22px">
+        <div class="ki">⏱</div>
+        <div class="kt"><strong>时间线：</strong>09:32 你发了一句话 → 09:34 Hermes 回复完整分析。<strong style="color:var(--emerald)">2 分钟</strong>完成了手工要 20 分钟的活。</div>
+      </div>
+    </section>
+
+    <!-- ===== 17. 节省时间对比 ===== -->
+    <section id="time-save" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 17</div>
+        <h2><span class="ico">⏱️</span>时间就是金钱：Hermes 能省多少？</h2>
+      </div>
+      <p>同样的任务，手工操作 vs Hermes 自动化。滚动到此区域，柱状图<strong style="color:var(--emerald)">动态展开</strong>。</p>
+
+      <div class="time-compare">
+        <div class="time-bar-wrap" id="timeBars">
+          <div class="time-bar-row">
+            <span class="tlabel">💻</span>
+            <span class="tdesc">重构 5000 行代码</span>
+            <div class="tbar"><div class="tfill" style="background:#f43f5e" data-w="100"><span class="ttag">手工 4 小时</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">💻</span>
+            <span class="tdesc">重构 5000 行代码</span>
+            <div class="tbar"><div class="tfill" style="background:#34d399" data-w="8"><span class="ttag">Hermes 20 分钟</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">📊</span>
+            <span class="tdesc">竞品调研报告</span>
+            <div class="tbar"><div class="tfill" style="background:#f43f5e" data-w="100"><span class="ttag">手工 2 小时</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">📊</span>
+            <span class="tdesc">竞品调研报告</span>
+            <div class="tbar"><div class="tfill" style="background:#34d399" data-w="7"><span class="ttag">Hermes 8 分钟</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">📦</span>
+            <span class="tdesc">财务数据下载分析</span>
+            <div class="tbar"><div class="tfill" style="background:#f43f5e" data-w="100"><span class="ttag">手工 20 分钟</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">📦</span>
+            <span class="tdesc">财务数据下载分析</span>
+            <div class="tbar"><div class="tfill" style="background:#34d399" data-w="5"><span class="ttag">Hermes 1 分钟</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">📝</span>
+            <span class="tdesc">项目文档整理</span>
+            <div class="tbar"><div class="tfill" style="background:#f43f5e" data-w="100"><span class="ttag">手工 1.5 小时</span></div></div>
+          </div>
+          <div class="time-bar-row">
+            <span class="tlabel">📝</span>
+            <span class="tdesc">项目文档整理</span>
+            <div class="tbar"><div class="tfill" style="background:#34d399" data-w="10"><span class="ttag">Hermes 9 分钟</span></div></div>
+          </div>
+        </div>
+        <div class="time-stat">
+          <div class="ts-num">-92%</div>
+          <div class="ts-label">平均时间节省</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 18. 谁在用 Hermes ===== -->
+    <section id="who" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 18</div>
+        <h2><span class="ico">👥</span>谁来用？怎么用？</h2>
+      </div>
+      <p>不同的角色用 Hermes 解决不同的问题。找找你的场景——</p>
+      <div class="role-grid">
+        <div class="role-badge"><div class="role-emoji">👨‍💻</div><div class="role-info"><div class="role-name">开发者</div><div class="role-use">重构代码 · 写文档 · 修 bug · 部署</div></div></div>
+        <div class="role-badge"><div class="role-emoji">📊</div><div class="role-info"><div class="role-name">数据分析师</div><div class="role-use">下载报表 · 清洗数据 · 异常预警</div></div></div>
+        <div class="role-badge"><div class="role-emoji">🛒</div><div class="role-info"><div class="role-name">电商运营</div><div class="role-use">自动对账 · 竞品监控 · 售后分析</div></div></div>
+        <div class="role-badge"><div class="role-emoji">🎓</div><div class="role-info"><div class="role-name">学生 / 研究者</div><div class="role-use">文献整理 · 数据收集 · 实验辅助</div></div></div>
+        <div class="role-badge"><div class="role-emoji">💼</div><div class="role-info"><div class="role-name">产品经理</div><div class="role-use">需求文档 · 竞品分析 · 邮件草稿</div></div></div>
+        <div class="role-badge"><div class="role-emoji">🏠</div><div class="role-info"><div class="role-name">普通用户</div><div class="role-use">日常问答 · 文件整理 · 定时提醒</div></div></div>
+      </div>
+    </section>
+
+    <!-- ===== 19. Agent 横向对比 ===== -->
+    <section id="agent-compare" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 19</div>
+        <h2><span class="ico">⚖️</span>Hermes vs OpenClaw vs Codex</h2>
+      </div>
+      <p>三个主流 AI Agent 框架，<strong style="color:var(--gold)">底层理念完全不同</strong>。选对工具，事半功倍。</p>
+
+      <div style="overflow-x:auto">
+        <table class="cap-table">
+          <thead>
+            <tr>
+              <th style="width:180px">能力维度</th>
+              <th style="color:var(--gold);font-size:15px">⚡ Hermes</th>
+              <th style="color:#22d3ee;font-size:15px">🔷 OpenClaw</th>
+              <th style="color:#a78bfa;font-size:15px">🟣 Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>开源 & 费用</strong></td><td class="check">免费开源</td><td class="check">免费开源</td><td>付费订阅</td></tr>
+            <tr><td><strong>模型自由</strong></td><td class="check">任意厂商切换</td><td class="check">任意厂商切换</td><td>仅 OpenAI</td></tr>
+            <tr><td><strong>本地执行</strong></td><td class="check">✓ 本地/容器</td><td class="check">✓ 本地</td><td>云沙箱为主</td></tr>
+            <tr><td><strong>数据隐私</strong></td><td class="check">100% 本地</td><td class="check">100% 本地</td><td>上传 OpenAI</td></tr>
+            <tr><td><strong>人格定制</strong></td><td class="check">SOUL.md 任意角色</td><td>有限</td><td>有限</td></tr>
+            <tr><td><strong>多身份管理</strong></td><td class="check">Profile 系统</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+            <tr><td><strong>跨会话记忆</strong></td><td class="check">MEMORY/USER.md</td><td>有限</td><td class="cross">✗</td></tr>
+            <tr><td><strong>消息平台接入</strong></td><td class="check">微信/TG/Discord/Slack...</td><td>有限</td><td class="cross">✗</td></tr>
+            <tr><td><strong>技能市场</strong></td><td class="check">100+ 可安装</td><td>ClawHub 生态</td><td>有限</td></tr>
+            <tr><td><strong>子 Agent 调度</strong></td><td class="check">可调度 Codex/Claude</td><td>可调度</td><td class="check">原生</td></tr>
+            <tr><td><strong>桌面控制</strong></td><td class="check">macOS 原生</td><td>有限</td><td class="cross">✗</td></tr>
+            <tr><td><strong>安装复杂度</strong></td><td>pip 一条命令</td><td>中等</td><td>需注册 OpenAI</td></tr>
+            <tr><td><strong>推荐场景</strong></td><td style="font-size:12.5px;color:var(--gold)">全场景·个人到企业</td><td style="font-size:12.5px;color:#22d3ee">社区·多技能联动</td><td style="font-size:12.5px;color:#a78bfa">纯代码·OpenAI 用户</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="keypoint" style="margin-top:22px">
+        <div class="ki">🧠</div>
+        <div class="kt"><strong>一句话差异：</strong>Codex 是「最好的 OpenAI 专用编程代理」，OpenClaw 是「最好的社区技能生态」，Hermes 是「最好的全场景 Agent 平台」——既能当 Codex 用（调它当子 Agent），又能当 OpenClaw 用（收它的技能），还多出多身份、网关、记忆三位一体。</div>
+      </div>
+
+      <h3>实际使用体验对比</h3>
+      <div class="case-grid">
+        <div class="case-card">
+          <div class="case-emoji">⚡</div>
+          <div class="case-title">Hermes 体验</div>
+          <div class="case-desc">pip install 一条命令，配好 API Key 直接对话。支持 10+ 模型自由切换，一句话让不同 Profile 干不同活，微信/TG 随时喊。</div>
+          <div class="case-time">🚀 安装到可用：3 分钟</div>
+        </div>
+        <div class="case-card">
+          <div class="case-emoji">🔷</div>
+          <div class="case-title">OpenClaw 体验</div>
+          <div class="case-desc">强大的社区技能生态，ClawHub 技能市场活跃。技能可跨 Agent 复用，社区驱动更新快。</div>
+          <div class="case-time" style="color:var(--cyan)">🔧 安装到可用：5-10 分钟</div>
+        </div>
+        <div class="case-card">
+          <div class="case-emoji">🟣</div>
+          <div class="case-title">Codex 体验</div>
+          <div class="case-desc">深度绑定 OpenAI 生态，GPT-5 驱动编码能力强。但需要 OpenAI 订阅，数据上传云端，模型不可切换。</div>
+          <div class="case-time" style="color:var(--violet)">☁️ 安装到可用：注册 + 5 分钟</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 20. 降本增效 ===== -->
+    <section id="roi" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 20</div>
+        <h2><span class="ico">📊</span>降本增效：企业 & 个人的真实回报</h2>
+      </div>
+      <p>不说虚的，用数字说话。以下数据基于<strong style="color:var(--gold)">日均使用 1-2 小时</strong>的保守估算。</p>
+
+      <h3>🏢 企业级降本</h3>
+      <div class="price-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))">
+        <div class="price-card" style="border-top: 3px solid var(--emerald)">
+          <div class="price-model" style="color:var(--emerald)">月均 API 成本</div>
+          <div class="price-amount" style="color:var(--emerald)">≈ ¥30<span class="unit">/ 人·月</span></div>
+          <div class="price-desc">DeepSeek 模型 · 含峰值</div>
+        </div>
+        <div class="price-card" style="border-top: 3px solid var(--gold)">
+          <div class="price-model" style="color:var(--gold)">时间节省</div>
+          <div class="price-amount" style="color:var(--gold)">98<span class="unit"> 小时/年</span></div>
+          <div class="price-desc">每人每年省出 2.5 周</div>
+        </div>
+        <div class="price-card" style="border-top: 3px solid var(--cyan)">
+          <div class="price-model" style="color:var(--cyan)">等效人力成本</div>
+          <div class="price-amount" style="color:var(--cyan)">≈ ¥7,800<span class="unit">/ 年</span></div>
+          <div class="price-desc">按 ¥80/小时计算</div>
+        </div>
+        <div class="price-card" style="border-top: 3px solid var(--violet)">
+          <div class="price-model" style="color:var(--violet)">ROI 回报比</div>
+          <div class="price-amount" style="color:var(--violet)">1 : 22<span class="unit"> 倍</span></div>
+          <div class="price-desc">投入 1 元省 22 元</div>
+        </div>
+      </div>
+
+      <h4>典型企业场景量化</h4>
+      <div style="overflow-x:auto">
+        <table>
+          <tr><th>岗位</th><th>每日重复任务</th><th>手工耗时</th><th>Hermes 耗时</th><th>年省时</th></tr>
+          <tr><td>运营专员</td><td>数据报表下载 + 分析</td><td>45 分钟</td><td>3 分钟</td><td><span style="color:var(--emerald);font-weight:700">175 小时</span></td></tr>
+          <tr><td>初级开发</td><td>代码审查 + 文档生成</td><td>2 小时</td><td>20 分钟</td><td><span style="color:var(--emerald);font-weight:700">400 小时</span></td></tr>
+          <tr><td>数据分析师</td><td>数据清洗 + 报表产出</td><td>3 小时</td><td>25 分钟</td><td><span style="color:var(--emerald);font-weight:700">620 小时</span></td></tr>
+          <tr><td>产品经理</td><td>竞品调研 + 需求文档</td><td>1.5 小时</td><td>15 分钟</td><td><span style="color:var(--emerald);font-weight:700">300 小时</span></td></tr>
+          <tr><td>客服组长</td><td>工单分类 + 话术建议</td><td>1 小时</td><td>10 分钟</td><td><span style="color:var(--emerald);font-weight:700">200 小时</span></td></tr>
+          <tr style="background:var(--gold-soft)"><td colspan="2"><strong style="color:var(--gold)">5 人团队合计</strong></td><td><strong>8 小时/天</strong></td><td><strong>1.2 小时/天</strong></td><td><strong style="color:var(--emerald)">1,695 小时/年</strong></td></tr>
+        </table>
+      </div>
+
+      <div class="keypoint" style="margin-top:20px;background:linear-gradient(90deg,var(--emerald-soft),transparent 80%);border-color:rgba(52,211,153,.3)">
+        <div class="ki">💡</div>
+        <div class="kt"><strong>结论：</strong>一个 5 人团队，每年用 Hermes 的成本约 <strong style="color:var(--emerald)">¥1,800</strong>（API 费），省出的时间等效 <strong style="color:var(--emerald)">¥135,000+</strong> 人力价值。这不是"省点钱"——这是<strong style="color:var(--gold)">让一个人干出 2.5 个人的活</strong>。</div>
+      </div>
+
+      <h3>👤 个人用户降本</h3>
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="price-model" style="color:var(--gold)">月均花费</div>
+          <div class="price-amount" style="color:var(--gold)">≈ ¥10<span class="unit">/ 月</span></div>
+          <div class="price-desc">日均 1-2 小时 · DeepSeek</div>
+        </div>
+        <div class="price-card">
+          <div class="price-model" style="color:var(--emerald)">对比 ChatGPT Plus</div>
+          <div class="price-amount" style="color:var(--emerald)">省 70%<span class="unit"> 费用</span></div>
+          <div class="price-desc">¥10 vs ¥140/月</div>
+        </div>
+        <div class="price-card">
+          <div class="price-model" style="color:var(--cyan)">对比雇助手</div>
+          <div class="price-amount" style="color:var(--cyan)">省 99%<span class="unit"> 费用</span></div>
+          <div class="price-desc">¥10 vs ¥5,000+/月</div>
+        </div>
+        <div class="price-card">
+          <div class="price-model" style="color:var(--violet)">额外价值</div>
+          <div class="price-amount" style="color:var(--violet)">24×7<span class="unit"> 在线</span></div>
+          <div class="price-desc">不睡觉·不请假·秒响应</div>
+        </div>
+      </div>
+
+      <div class="card card-accent" style="margin-top:22px">
+        <h4 style="margin-top:0">🤝 Hermes 能为团队带来什么？</h4>
+        <ul>
+          <li><strong>知识留存：</strong>老员工的经验写进 SOUL.md 和 skills，新人用 Hermes 直接上手，告别"只有他才知道怎么弄"</li>
+          <li><strong>流程标准化：</strong>把"每次手动操作"变成"一键让 Agent 执行"，出错率从 5% 降到接近 0</li>
+          <li><strong>多角色并行：</strong>一个 Terminal 开 3 个 Profile——一个写代码、一个分析报表、一个整理文档——互不干扰</li>
+          <li><strong>零供应商锁定：</strong>模型可随时切换，不依赖任何一家 AI 公司。DeepSeek 涨价？切 GPT。GPT 不可用？切 Gemini</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== 21. FAQ ===== -->
+    <section id="faq" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 21</div>
+        <h2><span class="ico">❓</span>常见问题 FAQ</h2>
+      </div>
+      <p>点击问题<strong style="color:var(--gold)">展开</strong>查看答案。</p>
+
+      <div class="faq-item">
+        <div class="faq-q"><span>Hermes 和 ChatGPT / Claude 有什么不同？</span><span class="chev">⌄</span></div>
+        <div class="faq-a"><div class="faq-a-inner">ChatGPT / Claude 只能在网页里聊天。Hermes 是<strong>本地运行的 Agent</strong>，能调用终端、文件、浏览器等工具，真正动手干活。它不绑定单一模型，可以切换 DeepSeek/GPT/Claude 等任意供应商。</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>需要付费吗？会不会很贵？</span><span class="chev">⌄</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Hermes 本身免费开源。你只需支付<strong>模型 API 费用</strong>。推荐从 DeepSeek 开始，¥1/百万 token，一天用下来通常不到 ¥1。也可用 Gemini 免费额度。</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>数据安全吗？我的文件会被上传吗？</span><span class="chev">⌄</span></div>
+        <div class="faq-a"><div class="faq-a-inner">所有配置、记忆、会话都存在<strong>本地 ~/.hermes/</strong>。只有你主动要求执行网络任务时才会联网。开启 <code>write_approval</code> 后，危险操作需人工确认。</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>支持哪些操作系统？</span><span class="chev">⌄</span></div>
+        <div class="faq-a"><div class="faq-a-inner">macOS、Linux、Windows 都支持。<code>computer_use</code>（桌面控制）目前仅限 macOS。Windows 下 terminal 走 bash（git-bash）。</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>记忆会越来越满怎么办？</span><span class="chev">⌄</span></div>
+        <div class="faq-a"><div class="faq-a-inner">记忆有字符上限（默认 MEMORY.md 2200 字 / USER.md 1375 字）。快满时工具会提示你用 <code>replace</code> 合并或 <code>remove</code> 删除旧条目。外部供应商（mem0/honcho）提供更大容量。</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>怎么让 Agent 更聪明、更懂我？</span><span class="chev">⌄</span></div>
+        <div class="faq-a"><div class="faq-a-inner">三招：① 写好 <code>SOUL.md</code> 定义人格；② 多用 <code>memory</code> 让它记住偏好；③ 安装相关 <code>skills</code> 注入领域知识。越用越懂你。</div></div>
+      </div>
+    </section>
+
+    <!-- ===== 17. 快速清单 ===== -->
+    <section id="checklist" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 22</div>
+        <h2><span class="ico">✅</span>上手检查清单</h2>
+      </div>
+      <p>勾选你已完成的项目，进度条实时更新。全选你就是合格的 Hermes 玩家了！</p>
+      <div class="checklist" id="quickList">
+        <div class="check-head">
+          <div class="check-title">部署完成度</div>
+          <div class="check-progress">
+            <div class="check-bar"><div class="check-bar-fill" id="checkFill"></div></div>
+            <span id="checkCount">0 / 8</span>
+          </div>
+        </div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">安装 Hermes (pip install hermes-agent)</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">配置至少一个模型 API Key</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">完成第一次 hermes chat 对话</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">启用 terminal + file 工具集</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">编辑过 SOUL.md 定制人格</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">用 memory 记住至少一条偏好</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">安装一个 skill 技能</div></div>
+        <div class="check-item" data-check><div class="check-box">✓</div><div class="check-label">成功启动过 gateway 网关</div></div>
+      </div>
+      <div class="callout callout-tip" id="checkDone" style="display:none">
+        <div class="callout-icon">🎉</div>
+        <div class="callout-body"><p><strong>全部完成！</strong>你已经掌握了 Hermes 的核心玩法。去探索更多技能和高级场景吧。</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 18. 学习路线 ===== -->
+    <section id="roadmap" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 23</div>
+        <h2><span class="ico">🗺️</span>推荐学习路线</h2>
+      </div>
+
+      <p>这是一条经过实践验证的学习路径。点击每个任务，直接跳转到对应章节。</p>
+
+      <div class="roadmap-overview">
+        <div class="ro-chip c1"><div class="ro-chip-ico">🌱</div><div class="ro-chip-name" style="color:var(--gold)">阶段一 · 入门</div><div class="ro-chip-time">第 1 天</div></div>
+        <div class="ro-chip c2"><div class="ro-chip-ico">🔧</div><div class="ro-chip-name" style="color:var(--cyan)">阶段二 · 实操</div><div class="ro-chip-time">第 2-3 天</div></div>
+        <div class="ro-chip c3"><div class="ro-chip-ico">🎨</div><div class="ro-chip-name" style="color:var(--violet)">阶段三 · 定制</div><div class="ro-chip-time">第 4-7 天</div></div>
+        <div class="ro-chip c4"><div class="ro-chip-ico">🚀</div><div class="ro-chip-name" style="color:var(--emerald)">阶段四 · 进阶</div><div class="ro-chip-time">第 2 周+</div></div>
+      </div>
+
+      <div class="roadmap">
+        <div class="road-phase p1">
+          <div class="road-node">1</div>
+          <div class="road-card">
+            <div class="road-head"><div class="road-title">🌱 入门 · 安装与首次对话</div><div class="road-when">第 1 天</div></div>
+            <div class="road-goal">目标：让 Hermes 跑起来，完成第一次成功对话。</div>
+            <div class="road-tasks">
+              <a href="#start" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>安装 Hermes</strong> · pip install hermes-agent，并验证安装成功</div><div class="road-task-jump">→ Ch.1</div></a>
+              <a href="#models" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>配置 API Key</strong> · 注册 DeepSeek/OpenAI，写入 ~/.hermes/.env</div><div class="road-task-jump">→ Ch.5</div></a>
+              <a href="#first-run" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>第一次对话</strong> · hermes chat，试着问几个问题</div><div class="road-task-jump">→ Ch.3</div></a>
+            </div>
+          </div>
+        </div>
+        <div class="road-phase p2">
+          <div class="road-node">2</div>
+          <div class="road-card">
+            <div class="road-head"><div class="road-title">🔧 实操 · 驾驭工具能力</div><div class="road-when">第 2-3 天</div></div>
+            <div class="road-goal">目标：让 Agent 真正"动手"做事，读写文件、跑命令。</div>
+            <div class="road-tasks">
+              <a href="#tools" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>启用工具集</strong> · 在 config.yaml 里开启 terminal / file</div><div class="road-task-jump">→ Ch.6</div></a>
+              <a href="#concepts" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>理解核心概念</strong> · Agent / Tools / Skills / Memory / Gateway</div><div class="road-task-jump">→ Ch.2</div></a>
+              <a href="#config" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>读懂 config.yaml</strong> · 掌握配置文件的主要参数</div><div class="road-task-jump">→ Ch.4</div></a>
+            </div>
+          </div>
+        </div>
+        <div class="road-phase p3">
+          <div class="road-node">3</div>
+          <div class="road-card">
+            <div class="road-head"><div class="road-title">🎨 定制 · 打造你的专属助理</div><div class="road-when">第 4-7 天</div></div>
+            <div class="road-goal">目标：定制人格与记忆，让 Hermes 变成"你的"助理。</div>
+            <div class="road-tasks">
+              <a href="#soul" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>编辑 SOUL.md</strong> · 定义 Agent 的人格与说话风格</div><div class="road-task-jump">→ Ch.10</div></a>
+              <a href="#memory" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>玩转记忆系统</strong> · 让 Agent 记住你的偏好与习惯</div><div class="road-task-jump">→ Ch.8</div></a>
+              <a href="#skills" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>安装技能</strong> · 添加 git / docker 等领域专家知识</div><div class="road-task-jump">→ Ch.7</div></a>
+              <a href="#profiles" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>创建第二个 Profile</strong> · 为不同用途隔离身份</div><div class="road-task-jump">→ Ch.9</div></a>
+            </div>
+          </div>
+        </div>
+        <div class="road-phase p4">
+          <div class="road-node">4</div>
+          <div class="road-card">
+            <div class="road-head"><div class="road-title">🚀 进阶 · 7×24 全能助理</div><div class="road-when">第 2 周及以后</div></div>
+            <div class="road-goal">目标：接入消息平台，变成随时在线的全能助理；掌握高阶技巧。</div>
+            <div class="road-tasks">
+              <a href="#gateway" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>接入微信/Telegram</strong> · 启动网关，消息里随问随答</div><div class="road-task-jump">→ Ch.11</div></a>
+              <a href="#commands" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>熟记命令速查</strong> · 掌握所有高频命令与快捷键</div><div class="road-task-jump">→ Ch.12</div></a>
+              <a href="#troubleshoot" class="road-task"><div class="road-task-check">✓</div><div class="road-task-text"><strong>学会故障排查</strong> · 遇到问题能独立解决</div><div class="road-task-jump">→ Ch.13</div></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-tip" style="margin-top:28px">
+        <div class="callout-icon">🎓</div>
+        <div class="callout-body"><p><strong>恭喜你读完手册！</strong>现在你已经掌握了 Hermes 的全貌。最好的学习方式是<strong>动手实践</strong>——打开终端，输入 <code>hermes chat</code>，开始你的 AI 助理之旅。每个任务都能点击跳转，随时回查。</p></div>
+      </div>
+    </section>
+<!-- ===== 14. 术语表 ===== -->
+    <section id="glossary" class="reveal">
+      <div class="section-header">
+        <div class="section-num">CHAPTER 24</div>
+        <h2><span class="ico">📖</span>术语表</h2>
+      </div>
+      <table>
+        <tr><th>术语</th><th>解释</th></tr>
+        <tr><td><strong>Agent</strong></td><td>智能体，能自主调用工具完成任务的 AI</td></tr>
+        <tr><td><strong>Tool / 工具</strong></td><td>Agent 可以调用的能力，如终端、文件、浏览器</td></tr>
+        <tr><td><strong>Toolset / 工具集</strong></td><td>一组相关工具的集合</td></tr>
+        <tr><td><strong>Skill / 技能</strong></td><td>预写的领域专家知识包</td></tr>
+        <tr><td><strong>Memory / 记忆</strong></td><td>跨会话持久化的信息</td></tr>
+        <tr><td><strong>Profile / 身份</strong></td><td>独立的 Hermes 实例配置</td></tr>
+        <tr><td><strong>SOUL.md</strong></td><td>定义 Agent 人格的灵魂档案</td></tr>
+        <tr><td><strong>Gateway / 网关</strong></td><td>连接消息平台的服务</td></tr>
+        <tr><td><strong>Provider / 供应商</strong></td><td>提供 AI 模型的服务商</td></tr>
+        <tr><td><strong>Session / 会话</strong></td><td>一次对话的完整上下文</td></tr>
+        <tr><td><strong>System Prompt</strong></td><td>系统提示词，定义 Agent 行为</td></tr>
+        <tr><td><strong>Function Calling</strong></td><td>模型调用工具的能力</td></tr>
+        <tr><td><strong>HERMES_HOME</strong></td><td>Hermes 家目录的环境变量</td></tr>
+        <tr><td><strong>Prefix Cache</strong></td><td>提示词前缀缓存，加速响应</td></tr>
+      </table>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer">
+      <svg role="img" aria-label="Hermes 页脚徽章" class="footer-crest" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5b942"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+        <circle cx="24" cy="24" r="22" fill="url(#fg)" fill-opacity="0.1" stroke="url(#fg)" stroke-width="1.5"/>
+        <path d="M14 30c0-6 4.5-11 10-11s10 5 10 11" stroke="url(#fg)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M24 13v-3" stroke="url(#fg)" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="8.5" r="2.4" fill="url(#fg)"/>
+        <path d="M14 24c-3-1-5 0-6 2 2 0 3 .5 4 1.5" stroke="url(#fg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M34 24c3-1 5 0 6 2-2 0-3 .5-4 1.5" stroke="url(#fg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="20" cy="29" r="1.4" fill="#22d3ee"/><circle cx="28" cy="29" r="1.4" fill="#22d3ee"/>
+      </svg>
+      <p>Hermes Agent 使用手册 · 信使之神，为你传递智慧</p>
+      <p style="margin-top:6px">本手册基于 Hermes Agent 实际功能编写 · 持续更新中</p>
+      <div style="margin-top:18px">
+        <a href="#start" class="btn btn-ghost" style="padding:8px 18px;font-size:13px">⬆️ 回到顶部</a>
+        <a href="#roadmap" class="btn btn-ghost" style="padding:8px 18px;font-size:13px">🗺️ 学习路线</a>
+      </div>
+    </div>
+
+  </main>
+
+
+<button class="to-top" id="toTop" title="回到顶部">↑</button>
+
+<script>
+  const progressFill = document.getElementById('progressFill');
+  const toTop = document.getElementById('toTop');
+  function onScroll() {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    progressFill.style.width = scrolled + '%';
+    toTop.classList.toggle('show', h.scrollTop > 600);
+  }
+  window.addEventListener('scroll', onScroll);
+
+  // Sidebar active state
+  const sections = document.querySelectorAll('section');
+  const navItems = document.querySelectorAll('.nav-item');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+    navItems.forEach(item => { item.classList.toggle('active', item.getAttribute('href') === '#' + current); });
+  });
+
+  // Copy code (for the single remaining code block)
+  function copyCode(btn) {
+    const code = btn.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = '✓ 已复制';
+      setTimeout(() => btn.textContent = '复制', 1500);
+    });
+  }
+
+  navItems.forEach(item => { item.addEventListener('click', () => { document.querySelector('.sidebar').classList.remove('open'); }); });
+  toTop.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ===== Concept flip cards =====
+  document.querySelectorAll('[data-flip]').forEach(card => {
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', card.querySelector('.concept-front .concept-name')?.textContent + ' 点击查看详解');
+    const toggle = () => card.classList.toggle('flipped');
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+
+  // ===== Model tabs + spec bar animation =====
+  (function () {
+    const tabs = document.querySelectorAll('#modelTabs .tab');
+    const panels = document.querySelectorAll('.tab-panel');
+    function activate(idx) {
+      tabs.forEach((t,i) => {
+        t.classList.toggle('active', i===idx);
+        t.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+      });
+      panels.forEach((p,i) => {
+        const on = i===idx;
+        p.classList.toggle('active', on);
+        if (on) {
+          // reset + animate spec bars
+          p.querySelectorAll('.spec-fill').forEach(f => f.style.width = '0%');
+          requestAnimationFrame(() => {
+            p.querySelectorAll('.spec-fill').forEach(f => { f.style.width = (f.dataset.w||0) + '%'; });
+          });
+        }
+      });
+    }
+    tabs.forEach((t,i) => {
+      t.setAttribute('tabindex', '0');
+      t.setAttribute('role', 'tab');
+      t.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      t.addEventListener('click', () => activate(i));
+      t.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(i); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); activate((i + 1) % tabs.length); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); activate((i - 1 + tabs.length) % tabs.length); }
+      });
+    });
+    // animate first panel on reveal
+    const firstPanel = document.querySelector('.tab-panel.active');
+    if (firstPanel) {
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          obs.unobserve(e.target);
+          firstPanel.querySelectorAll('.spec-fill').forEach(f => f.style.width = (f.dataset.w||0) + '%');
+        });
+      }, { threshold: 0.3 });
+      obs.observe(firstPanel);
+    }
+  })();
+
+  // ===== Capability radar animation =====
+  (function () {
+    const radar = document.getElementById('radarSvg');
+    const poly = document.getElementById('radarTools');
+    if (!radar || !poly) return;
+    // full-size hexagon points (6 axes, max radius 110 from center 140,140)
+    const cx=140, cy=140, R=110;
+    const full = [];
+    for (let i=0;i<6;i++) {
+      const ang = (-90 + i*60) * Math.PI/180;
+      full.push((cx + R*Math.cos(ang)).toFixed(1) + ',' + (cy + R*Math.sin(ang)).toFixed(1));
+    }
+    const fullStr = full.join(' ');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        obs.unobserve(radar);
+        poly.style.transition = 'none';
+        poly.setAttribute('points', Array(6).fill(cx+','+cy).join(' '));
+        requestAnimationFrame(() => {
+          poly.style.transition = 'all 1s cubic-bezier(.2,.6,.2,1)';
+          poly.setAttribute('points', fullStr);
+        });
+      });
+    }, { threshold: 0.35 });
+    obs.observe(radar);
+  })();
+
+  // ===== FAQ accordion =====
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    q.setAttribute('tabindex', '0');
+    q.setAttribute('role', 'button');
+    q.setAttribute('aria-expanded', 'false');
+    q.addEventListener('click', () => {
+      const open = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => {
+        if (o !== item) { o.classList.remove('open'); o.querySelector('.faq-q').setAttribute('aria-expanded', 'false'); }
+      });
+      item.classList.toggle('open', !open);
+      q.setAttribute('aria-expanded', !open ? 'true' : 'false');
+    });
+    q.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); q.click(); }
+    });
+  });
+
+  // ===== Quick-start checklist =====
+  (function () {
+    const items = document.querySelectorAll('[data-check]');
+    const fill = document.getElementById('checkFill');
+    const count = document.getElementById('checkCount');
+    const done = document.getElementById('checkDone');
+    const total = items.length;
+    function update() {
+      const n = document.querySelectorAll('[data-check].done').length;
+      fill.style.width = (n/total*100) + '%';
+      count.textContent = n + ' / ' + total;
+      done.style.display = (n === total) ? 'flex' : 'none';
+    }
+    items.forEach(it => {
+      it.setAttribute('tabindex', '0');
+      it.setAttribute('role', 'checkbox');
+      it.addEventListener('click', () => { it.classList.toggle('done'); update(); });
+      it.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); it.click(); } });
+    });
+    update();
+  })();
+
+  // ===== Click-to-copy command lines =====
+  (function () {
+    document.querySelectorAll('.cmd-line').forEach(line => {
+      const code = line.querySelector('code');
+      if (!code) return;
+      // skip the terminal demo input and lines that are pure text hints
+      if (line.querySelector('.term-input')) return;
+      line.classList.add('copyable');
+      line.addEventListener('click', (e) => {
+        // don't hijack interactive elements
+        if (e.target.closest('input,button,a')) return;
+        const text = code.textContent.trim();
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+          line.classList.add('copied');
+          setTimeout(() => line.classList.remove('copied'), 1200);
+        }).catch(() => {});
+      });
+    });
+  })();
+
+  // Typewriter for the initial demo lines, then enable interactive input
+  (function () {
+    const body = document.getElementById('termBody');
+    if (!body) return;
+    const inputRow = document.getElementById('inputRow');
+    const input = document.getElementById('termInput');
+    if (!input) return;
+
+    // Demo lines = everything before the divider line
+    const demoLines = [];
+    const all = Array.from(body.children);
+    for (const el of all) {
+      if (el.id === 'inputRow') break;
+      demoLines.push(el);
+      el.dataset.html = el.innerHTML;
+      el.innerHTML = '';
+      el.style.visibility = 'hidden';
+    }
+
+    function typeNext(i) {
+      if (i >= demoLines.length) { initInteractive(); return; }
+      const target = demoLines[i];
+      target.style.visibility = 'visible';
+      const plain = (target.dataset.html || '').replace(/<[^>]+>/g, '');
+      target.textContent = '';
+      let c = 0;
+      const speed = plain.length > 40 ? 12 : 22;
+      const tick = setInterval(() => {
+        c++;
+        target.textContent = plain.slice(0, c);
+        body.scrollTop = body.scrollHeight;
+        if (c >= plain.length) {
+          clearInterval(tick);
+          setTimeout(() => typeNext(i + 1), i === 0 ? 500 : 300);
+        }
+      }, speed);
+    }
+    setTimeout(() => typeNext(0), 700);
+
+    // ---------- Interactive terminal ----------
+    const history = [];
+    let histIdx = -1;
+
+    function print(html, cls) {
+      const div = document.createElement('div');
+      if (cls) div.className = cls;
+      div.innerHTML = html;
+      body.insertBefore(div, inputRow);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function typeOut(lines, done) {
+      // lines: array of {html, cls, delay}
+      let i = 0;
+      (function step() {
+        if (i >= lines.length) { if (done) done(); return; }
+        const item = lines[i];
+        setTimeout(() => {
+          print(item.html, item.cls);
+          step();
+        }, item.delay || 250);
+        i++;
+      })();
+    }
+
+    function isBlank(s) { return !s || !s.trim(); }
+
+    function respond(raw) {
+      const cmd = raw.trim();
+      const lower = cmd.toLowerCase();
+
+      if (lower === 'clear' || lower === 'cls') {
+        // keep only the input row
+        Array.from(body.children).forEach(el => { if (el.id !== 'inputRow') el.remove(); });
+        return;
+      }
+      if (lower === 'help' || lower === '?') {
+        typeOut([
+          {html:'可用命令：', cls:'l-out'},
+          {html:'  hermes chat&nbsp;&nbsp;&nbsp;&nbsp;启动交互对话', cls:'l-dim'},
+          {html:'  hermes status&nbsp;&nbsp;&nbsp;查看状态', cls:'l-dim'},
+          {html:'  hermes doctor&nbsp;&nbsp;&nbsp;诊断环境', cls:'l-dim'},
+          {html:'  hermes version&nbsp;&nbsp;查看版本', cls:'l-dim'},
+          {html:'  clear&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;清屏', cls:'l-dim'},
+          {html:'或直接输入问题，如“帮我查下今天的天气”', cls:'l-dim'}
+        ]);
+        return;
+      }
+      if (lower === 'exit' || lower === 'quit') {
+        print('👋 会话已结束。再输入命令可重新开始。', 'l-dim');
+        return;
+      }
+
+      // Hermes CLI commands
+      if (lower.startsWith('hermes')) {
+        if (lower.includes('chat')) {
+          typeOut([
+            {html:'⚡ Hermes Agent 会话已启动', cls:'l-ok'},
+            {html:'输入你的问题，或输入 exit 结束…', cls:'l-out'}
+          ]);
+        } else if (lower.includes('status')) {
+          typeOut([
+            {html:'◆ Hermes Agent Status', cls:'l-ai'},
+            {html:'  Model:     deepseek-v4-pro', cls:'l-out'},
+            {html:'  Provider:  DeepSeek ✓', cls:'l-ok'},
+            {html:'  Gateway:   running · weixin connected', cls:'l-ok'},
+            {html:'  Memory:    1.8KB / 2.2KB', cls:'l-out'}
+          ]);
+        } else if (lower.includes('doctor')) {
+          typeOut([
+            {html:'🩺 正在诊断…', cls:'l-ai'},
+            {html:'✓ Python 3.11.15', cls:'l-ok'},
+            {html:'✓ .env 已配置', cls:'l-ok'},
+            {html:'✓ DeepSeek API key 有效', cls:'l-ok'},
+            {html:'✓ 网关运行中', cls:'l-ok'},
+            {html:'一切正常，环境就绪 🎉', cls:'l-out'}
+          ]);
+        } else if (lower.includes('version')) {
+          print('Hermes Agent v1.0 · 信使之神', 'l-out');
+        } else if (lower.includes('profile')) {
+          print('  default · finance · biz-analyst · ceo-aide', 'l-out');
+        } else if (lower.includes('gateway')) {
+          typeOut([
+            {html:'🌐 gateway: running (PID 39477)', cls:'l-ok'},
+            {html:'   weixin: connected', cls:'l-ok'}
+          ]);
+        } else {
+          print('hermes: 未知子命令。输入 help 查看可用命令。', 'l-err');
+        }
+        return;
+      }
+
+      // Natural language → simulate an agent run
+      if (cmd.includes('天气') || lower.includes('weather')) {
+        runAgent([
+          {html:'🤖 收到，我来查…', cls:'l-ai', delay:300},
+          {html:'✓ 调用 web_search · web_extract', cls:'l-ok', delay:700},
+          {html:'今天上海：晴转多云 ☀️，26°C，湿度 55%，适合户外活动。', cls:'l-out', delay:900}
+        ]);
+        return;
+      }
+      if (cmd.includes('项目') || lower.includes('project') || cmd.includes('分析')) {
+        runAgent([
+          {html:'🤖 好的，我来扫描…', cls:'l-ai', delay:300},
+          {html:'✓ 调用 terminal · read_file · execute_code', cls:'l-ok', delay:750},
+          {html:'这是一个 React + Vite 项目，含 23 个组件，主要入口在 src/main.tsx。', cls:'l-out', delay:900}
+        ]);
+        return;
+      }
+      if (cmd.includes('你好') || lower.includes('hello') || lower.includes('hi') || cmd.includes('你是谁')) {
+        typeOut([{html:'你好！我是 Hermes Agent · 信使之神 ⚡。能帮你读写文件、跑命令、查资料。输入 help 看我能做什么。', cls:'l-out', delay:300}]);
+        return;
+      }
+
+      // Fallback
+      runAgent([
+        {html:'🤖 正在思考…', cls:'l-ai', delay:300},
+        {html:'✓ 综合处理', cls:'l-ok', delay:600},
+        {html:'我已收到：「' + escapeHtml(cmd) + '」。这是手册里的模拟终端，真实 Hermes 会调用工具帮你完成。', cls:'l-out', delay:850}
+      ]);
+    }
+
+    function runAgent(steps) {
+      input.disabled = true;
+      typeOut(steps, () => { input.disabled = false; input.focus(); });
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function submit() {
+      const v = input.value;
+      if (isBlank(v)) return;
+      history.push(v);
+      histIdx = history.length;
+      print('<span class="l-in" style="color:var(--gold)">&gt; ' + escapeHtml(v) + '</span>');
+      input.value = '';
+      respond(v);
+    }
+
+    function initInteractive() {
+      // Click anywhere in terminal focuses the input
+      body.addEventListener('click', () => input.focus());
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); submit(); }
+        else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (histIdx > 0) { histIdx--; input.value = history[histIdx] || ''; }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (histIdx < history.length - 1) { histIdx++; input.value = history[histIdx] || ''; }
+          else { histIdx = history.length; input.value = ''; }
+        } else if (e.key === 'l' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          Array.from(body.children).forEach(el => { if (el.id !== 'inputRow') el.remove(); });
+        }
+      });
+      setTimeout(() => input.focus(), 50);
+    }
+  })();
+
+  // Animate stat counters
+  (function () {
+    document.querySelectorAll('.hero-stat-num').forEach(el => {
+      const raw = el.textContent.trim();
+      if (raw === '∞') return;
+      const target = parseInt(raw, 10);
+      if (isNaN(target)) return;
+      el.textContent = '0';
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          obs.unobserve(el);
+          let n = 0;
+          const step = Math.max(1, Math.ceil(target / 28));
+          const t = setInterval(() => {
+            n += step;
+            if (n >= target) { n = target; clearInterval(t); }
+            el.textContent = n;
+          }, 28);
+        });
+      }, { threshold: 0.5 });
+      obs.observe(el);
+    });
+  })();
+  // ===== Agent loop SVG animation =====
+  (function () {
+    const loop = document.getElementById('agentLoop');
+    if (!loop) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        obs.unobserve(loop);
+        loop.classList.add('in-view');
+      });
+    }, { threshold: 0.4 });
+    obs.observe(loop);
+  })();
+
+  // ===== Chat demo animation =====
+  (function () {
+    const demo = document.getElementById('chatDemo');
+    if (!demo) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        obs.unobserve(demo);
+        demo.classList.add('in-view');
+      });
+    }, { threshold: 0.35 });
+    obs.observe(demo);
+  })();
+
+  // ===== Time comparison bar animation =====
+  (function () {
+    const wrap = document.getElementById('timeBars');
+    if (!wrap) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        obs.unobserve(wrap);
+        wrap.querySelectorAll('.tfill').forEach(f => {
+          f.style.width = (f.dataset.w || 0) + '%';
+        });
+      });
+    }, { threshold: 0.3 });
+    obs.observe(wrap);
+  })();
+</script>
+
+</div><!-- /layout -->
+
+</body>
+</html>
