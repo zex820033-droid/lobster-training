@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent 进阶手册 · 8大模块</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='g'><stop offset='0' stop-color='%23f5b942'/><stop offset='1' stop-color='%2322d3ee'/></linearGradient></defs><circle cx='24' cy='24' r='22' fill='url(%23g)'/><text x='24' y='31' text-anchor='middle' font-size='24'>⚡</text></svg>">
+<meta name="description" content="Hermes Agent 进阶手册 — 自定义工具开发、Cron 自动化、SOUL 深度工程、网关配置、安全合规、Profile 工程、多 Agent 调度、桌面自动化">
+<meta property="og:title" content="Hermes Agent 进阶手册 · 8大模块">
+<meta property="og:description" content="从使用者到构建者——掌握工具开发、自动化工作流、多 Agent 协作、网关深度配置等 8 大进阶能力。">
+<style>
+  :root {
+    --bg: #0a0c12; --bg-1: #0e1119; --bg-2: #141826; --bg-card: #161a28;
+    --bg-glass: rgba(22,26,40,0.6); --border: #232838; --border-2: #2e3548;
+    --text: #eef1f7; --text-2: #aab2c5; --text-3: #8892aa;
+    --gold: #f5b942; --gold-2: #ffd57a; --gold-soft: rgba(245,185,66,.12); --gold-glow: rgba(245,185,66,.4);
+    --emerald: #34d399; --emerald-soft: rgba(52,211,153,.12);
+    --cyan: #22d3ee; --cyan-soft: rgba(34,211,238,.12);
+    --violet: #a78bfa; --violet-soft: rgba(167,139,250,.12);
+    --rose: #fb7185; --rose-soft: rgba(251,113,133,.12);
+    --mono: 'SF Mono','JetBrains Mono','Fira Code',ui-monospace,Consolas,monospace;
+    --sans: -apple-system,BlinkMacSystemFont,'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    --shadow: 0 8px 30px rgba(0,0,0,.45); --shadow-lg: 0 20px 60px rgba(0,0,0,.5);
+    --shadow-gold: 0 8px 40px rgba(245,185,66,.25);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; scroll-padding-top:80px; }
+  body {
+    background:var(--bg); color:var(--text); font-family:var(--sans);
+    line-height:1.7; font-size:15px; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  /* Mechanical blueprint grid */
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(245,185,66,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,185,66,.06) 1px, transparent 1px),
+      radial-gradient(ellipse 60% 40% at 50% 35%, rgba(245,185,66,.15) 0%, transparent 60%);
+    background-size: 48px 48px, 48px 48px, 100% 100%;
+    pointer-events:none; z-index:0;
+    animation: gridPulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes gridPulse { 0%{opacity:.6} 50%{opacity:1} 100%{opacity:.6} }
+  /* Scanline overlay */
+  body::after {
+    content:''; position:fixed; inset:0;
+    background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 3px);
+    pointer-events:none; z-index:0; opacity:.5;
+  }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.01ms!important; animation-iteration-count:1!important; transition-duration:0.01ms!important; } body::before { animation:none!important; } }
+
+  /* Interactive particle canvas layer */
+  #particleCanvas { position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.7; }
+
+  .layout { display:flex; min-height:100vh; position:relative; z-index:1; }
+  .sidebar {
+    width:288px; background:rgba(14,17,25,.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border-right:1px solid var(--border); position:fixed; height:100vh; overflow-y:auto;
+    padding:26px 0 40px; z-index:100; transition:transform .3s ease;
+  }
+  .sidebar::-webkit-scrollbar { width:5px; }
+  .sidebar::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+  .brand { padding:0 22px 22px; border-bottom:1px solid var(--border); margin-bottom:14px; display:flex; align-items:center; gap:11px; }
+  .brand-logo { width:34px; height:34px; flex-shrink:0; }
+  .brand-logo svg { width:100%; height:100%; }
+  .brand-txt { line-height:1.15; }
+  .brand-name { font-size:16px; font-weight:800; background:linear-gradient(120deg,var(--gold),var(--gold-2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .brand-sub { font-size:10px; color:var(--text-3); letter-spacing:1.6px; text-transform:uppercase; }
+  .nav-section { padding:0 10px; margin-bottom:16px; }
+  .nav-section-title { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1.6px; padding:8px 12px; }
+  .nav-item { display:flex; align-items:center; gap:11px; padding:7px 12px; color:var(--text-2); text-decoration:none; border-radius:8px; font-size:13.5px; font-weight:500; transition:all .15s; border-left:2px solid transparent; }
+  .nav-item:hover { background:var(--bg-card); color:var(--text); }
+  .nav-item.active { background:linear-gradient(90deg,var(--gold-soft),transparent); color:var(--gold); border-left-color:var(--gold); font-weight:600; }
+  .nav-icon { width:17px; text-align:center; font-size:13px; }
+
+  .main { margin-left:288px; flex:1; padding:0 64px 120px; }
+  .progress-track { position:fixed; top:0; left:288px; right:0; height:3px; background:var(--border); z-index:200; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-2),var(--cyan)); width:0; transition:width .1s; }
+
+  .hero { padding:88px 0 64px; position:relative; overflow:hidden; border-bottom:1px solid var(--border); margin-bottom:64px; }
+  .hero-glow { position:absolute; top:-100px; right:-80px; width:480px; height:480px; background:radial-gradient(circle, rgba(245,185,66,.25) 0%, rgba(34,211,238,.10) 40%, transparent 70%); opacity:.6; pointer-events:none; }
+  .hero-gear { position:absolute; top:20px; right:20px; width:200px; height:200px; opacity:.18; pointer-events:none; animation:spinGear 60s linear infinite; }
+  @keyframes spinGear { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .hero h1 { font-size:48px; font-weight:800; line-height:1.08; letter-spacing:-1.8px; margin-bottom:18px; }
+  .hero h1 .gradient { background:linear-gradient(115deg,var(--gold) 0%,var(--gold-2) 45%,var(--cyan) 110%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero p { font-size:17px; color:var(--text-2); max-width:640px; }
+  .module-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px; margin:28px 0; }
+  .module-card { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:20px; transition:all .25s; position:relative; overflow:hidden; border-left:3px solid var(--border); }
+  .module-card:hover { transform:translateY(-4px); border-color:var(--gold); box-shadow:var(--shadow); }
+  .module-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .module-card.m1::before { background:var(--gold); } .module-card.m2::before { background:var(--cyan); }
+  .module-card.m3::before { background:var(--violet); } .module-card.m4::before { background:var(--emerald); }
+  .module-card.m5::before { background:var(--rose); } .module-card.m6::before { background:var(--gold); }
+  .module-card.m7::before { background:var(--cyan); } .module-card.m8::before { background:var(--violet); }
+  .module-num { font-family:var(--mono); color:var(--gold); font-size:11px; font-weight:700; letter-spacing:1px; }
+  .module-title { font-size:17px; font-weight:700; margin:6px 0 8px; }
+  .module-desc { font-size:13px; color:var(--text-2); line-height:1.6; }
+  .module-tag { display:inline-block; padding:2px 9px; border-radius:10px; font-size:10.5px; font-weight:600; margin-top:8px; }
+  .module-tag.p0 { background:rgba(244,63,94,.15); color:var(--rose); }
+  .module-tag.p1 { background:var(--gold-soft); color:var(--gold); }
+  .module-tag.p2 { background:var(--cyan-soft); color:var(--cyan); }
+
+  section { margin-bottom:72px; scroll-margin-top:80px; }
+  .section-header { margin-bottom:28px; border-left:3px solid var(--gold); padding-left:16px; }
+  .section-num { display:inline-block; font-family:var(--mono); font-size:12px; color:var(--gold); font-weight:700; margin-bottom:8px; letter-spacing:1px; background:linear-gradient(90deg,var(--border),transparent); padding:3px 10px; border-radius:3px; }
+  h2 { font-size:30px; font-weight:700; letter-spacing:-.5px; margin-bottom:12px; }
+  h2 .ico { margin-right:10px; }
+  h3 { font-size:20px; font-weight:600; margin:30px 0 12px; color:var(--text); }
+  h4 { font-size:16px; font-weight:600; margin:18px 0 8px; color:var(--gold); }
+  p { margin-bottom:14px; color:var(--text-2); }
+  p strong { color:var(--text); }
+  ul, ol { margin:12px 0 16px 22px; }
+  li { margin-bottom:8px; color:var(--text-2); }
+
+  code { font-family:var(--mono); font-size:13px; background:var(--bg-2); padding:2.5px 7px; border-radius:5px; color:var(--gold-2); border:1px solid var(--border); }
+  pre {
+    background:#070912; border:1px solid var(--border); border-radius:12px; padding:40px 20px 18px;
+    overflow-x:auto; margin:16px 0; position:relative; box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  pre::before { content:''; position:absolute; top:15px; left:18px; width:12px; height:12px; border-radius:50%; background:#ff5f56; box-shadow:20px 0 0 #ffbd2e, 40px 0 0 #27c93f; }
+  pre code { background:none; border:none; padding:0; color:#c9d4e5; font-size:13px; line-height:1.7; }
+  pre .c { color:#5d6680; } pre .k { color:var(--gold-2); } pre .s { color:var(--emerald); } pre .o { color:var(--violet); }
+
+  .cmd-line { display:flex; align-items:center; gap:10px; padding:11px 16px; background:var(--bg-1); border:1px solid var(--border); border-radius:10px; margin:8px 0; font-size:13.5px; transition:all .18s; cursor:pointer; border-left:3px solid var(--emerald); }
+  .cmd-line:hover { border-color:var(--gold); transform:translateX(4px); background:var(--bg-card); }
+  .cmd-line .prompt { color:var(--emerald); font-family:var(--mono); font-weight:700; flex-shrink:0; }
+  .cmd-line code { background:none; border:none; padding:0; color:var(--gold-2); font-size:13.5px; }
+  .cmd-line .desc { color:var(--text-3); margin-left:auto; font-size:12px; white-space:nowrap; }
+  .cmd-line.copied { border-color:var(--emerald)!important; background:var(--emerald-soft)!important; }
+
+  .callout { display:flex; gap:14px; padding:16px 18px; border-radius:12px; margin:18px 0; border:1px solid var(--border); align-items:flex-start; }
+  .callout-icon { font-size:20px; flex-shrink:0; line-height:1.4; }
+  .callout-body p { margin:0; color:var(--text); }
+  .callout-tip { background:linear-gradient(90deg,var(--gold-soft),transparent 70%); border-color:rgba(245,185,66,.25); }
+  .callout-warn { background:linear-gradient(90deg,var(--rose-soft),transparent 70%); border-color:rgba(251,113,133,.25); }
+  .callout-info { background:linear-gradient(90deg,var(--cyan-soft),transparent 70%); border-color:rgba(34,211,238,.25); }
+
+  .keypoint { display:flex; align-items:center; gap:14px; padding:16px 20px; background:linear-gradient(90deg,var(--gold-soft),transparent 80%); border:1px solid rgba(245,185,66,.3); border-radius:12px; margin:18px 0; }
+  .keypoint .ki { font-size:24px; }
+  .keypoint .kt { font-size:14.5px; color:var(--text); }
+  .keypoint .kt strong { color:var(--gold); }
+
+  table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13.5px; }
+  th { text-align:left; padding:13px 15px; background:var(--bg-2); color:var(--text); font-weight:600; border-bottom:2px solid var(--border-2); font-size:11.5px; text-transform:uppercase; letter-spacing:.6px; }
+  td { padding:13px 15px; border-bottom:1px solid var(--border); color:var(--text-2); }
+  td code { font-size:12px; }
+  tr:hover td { background:rgba(245,185,66,.03); }
+
+  .flow { display:flex; flex-wrap:wrap; gap:0; margin:24px 0; align-items:stretch; }
+  .flow-step { flex:1; min-width:130px; background:var(--bg-card); border:1px solid var(--border); padding:16px; position:relative; text-align:center; transition:all .2s; z-index:1; }
+  .flow-step:hover { border-color:var(--gold); transform:translateY(-3px); z-index:3; }
+  .flow-step:first-child { border-radius:12px 0 0 12px; }
+  .flow-step:last-child { border-radius:0 12px 12px 0; }
+  .flow-step:not(:last-child)::after { content:'→'; position:absolute; right:-11px; top:50%; transform:translateY(-50%); color:var(--gold); font-size:18px; z-index:5; background:var(--bg); width:22px; height:22px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+  .flow-step-num { font-family:var(--mono); color:var(--gold); font-size:11px; font-weight:700; }
+  .flow-step-title { font-size:14px; font-weight:600; margin:6px 0 4px; color:var(--text); }
+  .flow-step-desc { font-size:12px; color:var(--text-3); }
+
+  .to-top { position:fixed; bottom:32px; right:32px; width:48px; height:48px; border-radius:50%; background:var(--bg-glass); backdrop-filter:blur(10px); border:1px solid var(--border-2); color:var(--text-2); display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; opacity:0; visibility:hidden; transition:all .25s; z-index:90; box-shadow:var(--shadow); }
+  .to-top.show { opacity:1; visibility:visible; }
+  .to-top:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-3px); }
+
+  .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity:1; transform:translateY(0); }
+
+  .footer { margin-top:88px; padding-top:36px; border-top:1px solid var(--border); color:var(--text-3); font-size:13px; text-align:center; }
+
+  .menu-toggle { display:none; position:fixed; top:16px; left:16px; z-index:110; background:var(--bg-card); border:1px solid var(--border-2); color:var(--text); width:42px; height:42px; border-radius:10px; font-size:20px; cursor:pointer; }
+  @media (max-width:980px) {
+    .sidebar { transform:translateX(-100%); }
+    .sidebar.open { transform:translateX(0); }
+    .main { margin-left:0; padding:0 22px 80px; }
+    .progress-track { left:0; }
+    .menu-toggle { display:flex; align-items:center; justify-content:center; }
+    .hero h1 { font-size:32px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="particleCanvas"></canvas>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="progress-track"><div class="progress-fill" id="pf"></div></div>
+
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand">
+    <div class="brand-logo">
+      <svg role="img" aria-label="Hermes 进阶标志" viewBox="0 0 48 48"><defs><linearGradient id="lg"><stop offset="0" stop-color="#f5b942"/><stop offset="1" stop-color="#ffd57a"/></linearGradient></defs><circle cx="24" cy="24" r="22" fill="url(#lg)" fill-opacity=".12" stroke="url(#lg)" stroke-width="1.5"/><path d="M14 30c0-6 4.5-11 10-11s10 5 10 11" stroke="url(#lg)" stroke-width="2.2" stroke-linecap="round"/><path d="M24 13v-3" stroke="url(#lg)" stroke-width="2.2" stroke-linecap="round"/><circle cx="24" cy="8.5" r="2.4" fill="url(#lg)"/><path d="M14 24c-3-1-5 0-6 2 2 0 3 .5 4 1.5" stroke="url(#lg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M34 24c3-1 5 0 6 2-2 0-3 .5-4 1.5" stroke="url(#lg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="29" r="1.4" fill="#22d3ee"/><circle cx="28" cy="29" r="1.4" fill="#22d3ee"/></svg>
+    </div>
+    <div class="brand-txt"><div class="brand-name">进阶手册</div><div class="brand-sub">8 模块 · 从使用者到构建者</div></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">P0 🔴 核心能力</div>
+    <a href="#m1" class="nav-item"><span class="nav-icon">🔧</span> 自定义工具开发</a>
+    <a href="#m2" class="nav-item"><span class="nav-icon">⏰</span> Cron 自动化</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">P1 🟡 深度掌握</div>
+    <a href="#m3" class="nav-item"><span class="nav-icon">🧬</span> SOUL 深度工程</a>
+    <a href="#m4" class="nav-item"><span class="nav-icon">🌐</span> 网关深度配置</a>
+    <a href="#m5" class="nav-item"><span class="nav-icon">🛡️</span> 安全与合规</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">P2 🟢 高级架构</div>
+    <a href="#m6" class="nav-item"><span class="nav-icon">🎭</span> Profile 工程化</a>
+    <a href="#m7" class="nav-item"><span class="nav-icon">🔗</span> 多 Agent 调度</a>
+    <a href="#m8" class="nav-item"><span class="nav-icon">🖥️</span> Computer Use</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">扩展 · 进阶工具</div>
+    <a href="#m9" class="nav-item"><span class="nav-icon">🔌</span> MCP 协议集成</a>
+    <a href="#m10" class="nav-item"><span class="nav-icon">🔬</span> 调试与诊断</a>
+  </div>
+</nav>
+
+<main class="main">
+
+<div class="hero">
+  <div class="hero-glow"></div>
+  <svg class="hero-gear" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="机械齿轮装饰">
+    <circle cx="100" cy="100" r="90" stroke="#f5b942" stroke-width="1" stroke-dasharray="6 5" opacity=".4"/>
+    <circle cx="100" cy="100" r="70" stroke="#22d3ee" stroke-width="0.8" stroke-dasharray="8 6" opacity=".35"/>
+    <circle cx="100" cy="100" r="50" stroke="#a78bfa" stroke-width="0.6" stroke-dasharray="4 4" opacity=".3"/>
+    <circle cx="100" cy="100" r="30" stroke="#34d399" stroke-width="1" stroke-dasharray="3 7" opacity=".25"/>
+    <circle cx="100" cy="100" r="5" fill="#f5b942" opacity=".6"/>
+    <line x1="100" y1="10" x2="100" y2="95" stroke="#f5b942" stroke-width=".8" opacity=".3"/><line x1="100" y1="105" x2="100" y2="190" stroke="#f5b942" stroke-width=".8" opacity=".3"/>
+    <line x1="10" y1="100" x2="95" y2="100" stroke="#22d3ee" stroke-width=".8" opacity=".3"/><line x1="105" y1="100" x2="190" y2="100" stroke="#22d3ee" stroke-width=".8" opacity=".3"/>
+    <line x1="36" y1="36" x2="95" y2="95" stroke="#a78bfa" stroke-width=".8" opacity=".3"/><line x1="105" y1="105" x2="164" y2="164" stroke="#a78bfa" stroke-width=".8" opacity=".3"/>
+    <line x1="36" y1="164" x2="95" y2="105" stroke="#34d399" stroke-width=".8" opacity=".3"/><line x1="105" y1="95" x2="164" y2="36" stroke="#34d399" stroke-width=".8" opacity=".3"/>
+  </svg>
+  <h1><span class="gradient">Hermes Agent</span><br>进阶手册</h1>
+  <p>从「使用者」到「构建者」——掌握工具开发、自动化工作流、多 Agent 协作、MCP 协议、调试诊断等 <strong>10 大进阶能力</strong>。每个模块独立可用，按需查阅。</p>
+  <div class="module-grid" style="margin-top:36px">
+    <a href="#m1" style="text-decoration:none;color:inherit"><div class="module-card m1"><div class="module-num">M1</div><div class="module-title">🔧 自定义工具开发</div><div class="module-desc">写一个 Python 函数 → 注册为 Hermes 工具</div><div class="module-tag p0">P0 · 🟡 中等</div></div></a>
+    <a href="#m2" style="text-decoration:none;color:inherit"><div class="module-card m2"><div class="module-num">M2</div><div class="module-title">⏰ Cron 自动化</div><div class="module-desc">无人值守：定时采集 · 分析 · 推送报告</div><div class="module-tag p0">P0 · 🟢 入门</div></div></a>
+    <a href="#m3" style="text-decoration:none;color:inherit"><div class="module-card m3"><div class="module-num">M3</div><div class="module-title">🧬 SOUL 深度工程</div><div class="module-desc">Prompt 分层 · 人格场景库 · 约束注入</div><div class="module-tag p1">P1 · 🟡 中等</div></div></a>
+    <a href="#m4" style="text-decoration:none;color:inherit"><div class="module-card m4"><div class="module-num">M4</div><div class="module-title">🌐 网关深度配置</div><div class="module-desc">多平台接入 · 自定义平台 · 并发限流</div><div class="module-tag p1">P1 · 🟡 中等</div></div></a>
+    <a href="#m5" style="text-decoration:none;color:inherit"><div class="module-card m5"><div class="module-num">M5</div><div class="module-title">🛡️ 安全与合规</div><div class="module-desc">Write Approval · AgentGuard · 沙箱执行</div><div class="module-tag p1">P1 · 🟡 中等</div></div></a>
+    <a href="#m6" style="text-decoration:none;color:inherit"><div class="module-card m6"><div class="module-num">M6</div><div class="module-title">🎭 Profile 工程化</div><div class="module-desc">Git 管理 · 团队共享 · 批量部署</div><div class="module-tag p2">P2 · 🔴 高级</div></div></a>
+    <a href="#m7" style="text-decoration:none;color:inherit"><div class="module-card m7"><div class="module-num">M7</div><div class="module-title">🔗 多 Agent 调度</div><div class="module-desc">Delegation · 子 Agent 选型 · Kanban</div><div class="module-tag p2">P2 · 🔴 高级</div></div></a>
+    <a href="#m8" style="text-decoration:none;color:inherit"><div class="module-card m8"><div class="module-num">M8</div><div class="module-title">🖥️ Computer Use</div><div class="module-desc">背景桌面控制 · GUI 自动化 · cua-driver</div><div class="module-tag p2">P2 · 🟡 中等</div></div></a>
+    <a href="#m9" style="text-decoration:none;color:inherit"><div class="module-card m1"><div class="module-num">M9</div><div class="module-title">🔌 MCP 协议集成</div><div class="module-desc">连接 AI 工具生态 · Client + Server 双向</div><div class="module-tag p2">P2 · 🟡 中等</div></div></a>
+    <a href="#m10" style="text-decoration:none;color:inherit"><div class="module-card m2"><div class="module-num">M10</div><div class="module-title">🔬 调试与诊断</div><div class="module-desc">doctor · prompt-size · logs · 故障速查</div><div class="module-tag p2">P2 · 🟢 入门</div></div></a>
+  </div>
+</div>
+
+<!-- ===== 模块一 ===== -->
+<section id="m1" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 01 · P0 必学 · 🟡 中等</div><h2><span class="ico">🔧</span>自定义工具开发</h2></div>
+<p>Hermes 的每个能力都是「工具」。学会写工具，你就<strong style="color:var(--gold)">突破了框架的上限</strong>——Agent 能做什么，取决于你写了什么工具。</p>
+
+<h3>工具的本质：Schema + Handler</h3>
+<p>一个工具由两部分组成：<strong>Schema</strong>（告诉 Agent「我可以这样调用你」）和 <strong>Handler</strong>（实际执行的 Python 函数）。</p>
+
+<h4>单文件工具：最简实现</h4>
+<pre><code><span class="c"># ~/.hermes/tools/my_tool.py</span>
+<span class="k">import</span> json
+
+<span class="c"># 1. 定义 Schema（Agent 看到的说明书）</span>
+<span class="o">MY_TOOL_SCHEMA</span> = {
+    <span class="s">"name"</span>: <span class="s">"lookup_express"</span>,
+    <span class="s">"description"</span>: <span class="s">"查询快递物流信息。输入快递单号，返回最新物流状态。"</span>,
+    <span class="s">"parameters"</span>: {
+        <span class="s">"type"</span>: <span class="s">"object"</span>,
+        <span class="s">"properties"</span>: {
+            <span class="s">"tracking_number"</span>: {<span class="s">"type"</span>: <span class="s">"string"</span>, <span class="s">"description"</span>: <span class="s">"快递单号"</span>}
+        },
+        <span class="s">"required"</span>: [<span class="s">"tracking_number"</span>]
+    }
+}
+
+<span class="c"># 2. 实现 Handler</span>
+<span class="k">def</span> <span class="o">lookup_express_handler</span>(args, **kw):
+    tracking = args.get(<span class="s">"tracking_number"</span>, <span class="s">""</span>)
+    <span class="c"># 这里调用真实快递 API...</span>
+    result = {<span class="s">"status"</span>: <span class="s">"运输中"</span>, <span class="s">"location"</span>: <span class="s">"上海分拣中心"</span>, <span class="s">"eta"</span>: <span class="s">"1 天"</span>}
+    <span class="k">return</span> json.dumps(result, ensure_ascii=<span class="k">False</span>)
+
+<span class="c"># 3. 注册到 Hermes</span>
+<span class="k">from</span> tools.registry <span class="k">import</span> registry
+registry.register(
+    name=<span class="s">"lookup_express"</span>,
+    toolset=<span class="s">"custom"</span>,
+    schema=MY_TOOL_SCHEMA,
+    handler=lookup_express_handler,
+    emoji=<span class="s">"📦"</span>
+)</code></pre>
+
+<div class="keypoint"><div class="ki">💡</div><div class="kt"><strong>Schema 描述是写给 AI 看的，不是写给你看的。</strong>description 越清晰，Agent 越知道什么时候用这个工具、怎么填参数。用「当用户提到快递/物流/单号时，用这个工具查」这种自然语言。</div></div>
+
+<h4>多文件工具集（推荐结构）</h4>
+<pre><code><span class="c"># ~/.hermes/tools/pdd_tools/</span>
+<span class="c"># ├── __init__.py       ← 入口：注册所有工具</span>
+<span class="c"># ├── download.py       ← 下载工具</span>
+<span class="c"># ├── analyze.py        ← 分析工具</span>
+<span class="c"># └── report.py         ← 报吿工具</span>
+
+<span class="c"># __init__.py:</span>
+<span class="k">from</span> tools.registry <span class="k">import</span> registry
+<span class="k">from</span> .download <span class="k">import</span> DOWNLOAD_SCHEMA, download_handler
+<span class="k">from</span> .analyze <span class="k">import</span> ANALYZE_SCHEMA, analyze_handler
+<span class="k">from</span> .report <span class="k">import</span> REPORT_SCHEMA, report_handler
+
+registry.register(name=<span class="s">"pdd_download"</span>, toolset=<span class="s">"pdd"</span>, schema=<span class="s">DOWNLOAD_SCHEMA</span>, handler=download_handler)
+registry.register(name=<span class="s">"pdd_analyze"</span>, toolset=<span class="s">"pdd"</span>, schema=<span class="s">ANALYZE_SCHEMA</span>, handler=analyze_handler)
+registry.register(name=<span class="s">"pdd_report"</span>, toolset=<span class="s">"pdd"</span>, schema=<span class="s">REPORT_SCHEMA</span>, handler=report_handler)</code></pre>
+
+<h3>在 config.yaml 中启用自定义工具集</h3>
+<div class="cmd-line"><span class="prompt">⚙️</span><code>toolsets: [..., pdd]</code><span class="desc">加入 pdd 工具集</span></div>
+
+<div class="callout callout-warn"><div class="callout-icon">⚠️</div><div class="callout-body"><p><strong>调试技巧：</strong>工具返回必须是 JSON 字符串。用 <code>try/except</code> 包裹并按 <code>{"success": bool, "error": "..."}</code> 格式返回，Hermes 能根据 success 字段自动判断是否失败并重试。</p></div></div>
+</section>
+
+<!-- ===== 模块二 ===== -->
+<section id="m2" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 02 · P0 必学 · 🟢 入门</div><h2><span class="ico">⏰</span>Cron 自动化工作流</h2></div>
+<p>从「每次手动输入命令」到<strong style="color:var(--gold)">无人值守自动运行</strong>——这是 Hermes 从工具升级为平台的关键一步。</p>
+
+<h3>Cron 语法速查</h3>
+<table>
+<tr><th>表达式</th><th>含义</th><th>示例场景</th></tr>
+<tr><td><code>0 8 * * *</code></td><td>每天 8:00</td><td>下载昨日报表</td></tr>
+<tr><td><code>0 */6 * * *</code></td><td>每 6 小时</td><td>监控竞品价格</td></tr>
+<tr><td><code>0 9 * * 1</code></td><td>每周一 9:00</td><td>生成周报</td></tr>
+<tr><td><code>0 0 1 * *</code></td><td>每月 1 号 0:00</td><td>月结报表</td></tr>
+<tr><td><code>*/5 * * * *</code></td><td>每 5 分钟</td><td>心跳检测</td></tr>
+</table>
+
+<h3>实战：每日竞品监控全链路</h3>
+<div class="flow">
+<div class="flow-step"><div class="flow-step-num">08:00</div><div class="flow-step-title">采集</div><div class="flow-step-desc">hermes cron 触发</div></div>
+<div class="flow-step"><div class="flow-step-num">08:02</div><div class="flow-step-title">浏览器</div><div class="flow-step-desc">抓取竞品价格/销量</div></div>
+<div class="flow-step"><div class="flow-step-num">08:05</div><div class="flow-step-title">分析</div><div class="flow-step-desc">Python 数据处理</div></div>
+<div class="flow-step"><div class="flow-step-num">08:08</div><div class="flow-step-title">推送</div><div class="flow-step-desc">微信通知你</div></div>
+</div>
+
+<pre><code><span class="c"># 添加每日竞品监控任务</span>
+<span class="k">hermes</span> cron add <span class="o">--cron</span> <span class="s">"0 8 * * *"</span> \
+  <span class="o">--prompt</span> <span class="s">"打开拼多多，搜索「{产品关键词}」Top 5 竞品，记录价格和月销量，
+            与昨日数据对比，价格波动超过 5% 的推送到微信。"</span> \
+  <span class="o">--name</span> <span class="s">"每日竞品监控"</span>
+
+<span class="c"># 查看所有任务</span>
+<span class="k">hermes</span> cron list
+
+<span class="c"># 手动触发一次（调试用）</span>
+<span class="k">hermes</span> cron run <span class="o">--name</span> <span class="s">"每日竞品监控"</span></code></pre>
+
+<div class="callout callout-tip"><div class="callout-icon">🎯</div><div class="callout-body"><p><strong>进阶技巧：</strong>用不同 <code>--profile</code> 参数让不同身份执行不同 cron 任务。比如 <code>--profile finance</code> 跑财账任务，<code>--profile biz-analyst</code> 跑竞品分析——互不干扰。</p></div></div>
+
+<h3>T+0/T+3/T+6 多阶段自动分析</h3>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes cron add --cron "0 8 * * *" --prompt "...T+0 基线分析"</code><span class="desc">Day 0</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes cron add --cron "0 8 */3 * *" --prompt "...T+3 趋势验证"</code><span class="desc">每 3 天</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes cron add --cron "0 8 */6 * *" --prompt "...T+6 收敛判断"</code><span class="desc">每 6 天</span></div>
+
+<div class="keypoint"><div class="ki">⚡</div><div class="kt"><strong>关键：</strong>配合 <code>pdd_finagent.py</code> 状态管理工具，cron 任务每次运行时读取上次状态、判断当前阶段、决定是否执行——自动跑完整个 T+0→T+3→T+6 完整周期。</div></div>
+</section>
+
+<!-- ===== 模块三 ===== -->
+<section id="m3" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 03 · P1 · 🟡 中等</div><h2><span class="ico">🧬</span>SOUL.md 深度工程</h2></div>
+<p>SOUL.md 不是你写一段介绍就行了——它是<strong style="color:var(--gold)">注入到 System Prompt 第一层的完整指令</strong>。写好它 = 给 Agent 装了一副你定制的「眼睛和性格」。</p>
+
+<h3>System Prompt 三层架构</h3>
+<div class="flow">
+<div class="flow-step"><div class="flow-step-num">Stable</div><div class="flow-step-title">SOUL + 指引</div><div class="flow-step-desc">整个会话不变</div></div>
+<div class="flow-step"><div class="flow-step-num">Context</div><div class="flow-step-title">上下文文件</div><div class="flow-step-desc">AGENTS.md 等</div></div>
+<div class="flow-step"><div class="flow-step-num">Volatile</div><div class="flow-step-title">记忆 + 时间</div><div class="flow-step-desc">每次对话可刷新</div></div>
+</div>
+<p>SOUL.md 在 Stable 层，是整个会话的<strong>第一优先级</strong>——比 Memory、Skills 优先级都高。后面的所有内容<strong>无法覆盖 SOUL 的约束</strong>。</p>
+
+<h3>约束 vs 建议：写法差异</h3>
+<pre><code><span class="c"># ❌ 建议式（弱，Agent 可能忽略）</span>
+你可以尝试给出简洁的回复。
+
+<span class="c"># ✅ 约束式（强，Agent 必须遵守）</span>
+<span class="s">你的每条回复不超过 3 句话。如果超过，先删减再发送。</span>
+
+<span class="c"># ❌ 建议式</span>
+最好先分析数据再给出结论。
+
+<span class="c"># ✅ 约束式</span>
+<span class="s">遵循 DATA→ANALYSIS→CONCLUSION 三步骤。缺少任何一步即视为未完成任务。</span></code></pre>
+
+<h3>人格场景库：开箱即用的 SOUL 模板</h3>
+<p>以下四个模板可以直接粘贴到 <code>SOUL.md</code>，微调后生效：</p>
+<table>
+<tr><th>角色</th><th>核心约束</th><th>关键注入</th></tr>
+<tr><td><strong>代码审查员</strong></td><td>只批评不赞美 · 每条意见附带文件+行号</td><td>「你的任何一句'good job'都是失职」</td></tr>
+<tr><td><strong>面试官</strong></td><td>追问到底 · 不接受「大概是」· 评分</td><td>「每次回答后必须追问至少 1 个深入问题」</td></tr>
+<tr><td><strong>心理咨询风格</strong></td><td>倾听 > 建议 · 从不评价</td><td>「禁止使用'你应该'。全部替换为'你感觉怎么样'」</td></tr>
+<tr><td><strong>数据科学家模式</strong></td><td>必输出图表数据 · 置信区间</td><td>「每次分析输出 JSON，包含 mean/median/std/n」</td></tr>
+</table>
+
+<div class="keypoint"><div class="ki">🧬</div><div class="kt"><strong>三件套协同公式：</strong>SOUL.md = 你是谁 + 怎么说话，MEMORY.md = 你学到了什么，USER.md = 对面是谁。三者<strong style="color:var(--gold)">重叠的部分</strong>（如「用户喜欢简洁」）会让 Agent 执行更精确。</div></div>
+</section>
+
+<!-- ===== 模块四 ===== -->
+<section id="m4" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 04 · P1 · 🟡 中等</div><h2><span class="ico">🌐</span>网关深度配置</h2></div>
+<p>网关是 Hermes 的<strong style="color:var(--gold)">24/7 在线入口</strong>。消息平台发来的每条消息都经过网关路由到 Agent，Agent 回复再通过网关返回。</p>
+
+<h3>多平台并发运行</h3>
+<pre><code><span class="c"># 在 config.yaml 的 platform_toolsets 中为每个平台配不同工具：</span>
+<span class="k">platform_toolsets</span>:
+  <span class="k">weixin</span>:
+    - hermes-weixin
+    - terminal
+    - file
+  <span class="k">telegram</span>:
+    - hermes-telegram
+    - web_search
+    - browser
+  <span class="k">discord</span>:
+    - hermes-discord
+    - execute_code
+    - memory</code></pre>
+
+<h3>微信接入全配置</h3>
+<pre><code><span class="c"># ~/.hermes/.env</span>
+<span class="o">WEIXIN_ACCOUNT_ID</span>=<span class="s">your_bot@im.bot</span>
+<span class="o">WEIXIN_TOKEN</span>=<span class="s">bot_token_here</span>
+<span class="o">WEIXIN_BASE_URL</span>=<span class="s">https://ilinkai.weixin.qq.com</span>
+<span class="o">WEIXIN_DM_POLICY</span>=<span class="s">pairing</span>  <span class="c"># pairing=需配对码才能私聊, open=所有人</span>
+<span class="o">WEIXIN_GROUP_POLICY</span>=<span class="s">disabled</span> <span class="c"># disabled=不进群, mention_only=被@才回</span></code></pre>
+
+<h3>自定义平台接入</h3>
+<p>Hermes 支持通过 <code>--platform</code> 注册自定义平台。本质就是实现一个「收消息 → 调 Agent → 回消息」的适配器：</p>
+<pre><code><span class="c"># 以 webhook 为例——任何能发 HTTP 请求的系统都能接入</span>
+<span class="c"># 1. 启动 Hermes 内置 webhook 服务</span>
+<span class="k">hermes</span> webhook start <span class="o">--port</span> <span class="s">9999</span>
+
+<span class="c"># 2. 任何系统 POST 到 http://localhost:9999/webhook</span>
+<span class="c"># Body: {"message": "..., "user": "...", "platform": "my-app"}</span>
+
+<span class="c"># 3. Hermes 自动路由到 Agent → 返回回复</span></code></pre>
+
+<div class="callout callout-warn"><div class="callout-icon">⚡</div><div class="callout-body"><p><strong>常见故障：</strong>网关日志中出现 <code>iLink sendmessage rate limited</code> → 微信限流了，30 秒后自动恢复。出现 <code>token already in use</code> → <code>kill -9 $(pgrep -f "gateway run")</code> 清理僵尸进程。</p></div></div>
+</section>
+
+<!-- ===== 模块五 ===== -->
+<section id="m5" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 05 · P1 · 🟡 中等</div><h2><span class="ico">🛡️</span>安全与合规</h2></div>
+<p>当 Hermes 处理<strong style="color:var(--rose)">敏感数据</strong>或在<strong style="color:var(--rose)">生产环境</strong>运行时，安全不是选项——是底线。</p>
+
+<h3>Write Approval：写入操作的「审批链」</h3>
+<pre><code><span class="c"># 开启后，每次 write_file/patch/terminal rm 都需手动批准</span>
+<span class="k">hermes</span> config set write_approval <span class="k">true</span>
+
+<span class="c"># 或直接在 config.yaml 中：</span>
+<span class="k">agent</span>:
+  <span class="o">write_approval</span>: <span class="k">true</span></code></pre>
+<div class="flow">
+<div class="flow-step"><div class="flow-step-num">Agent</div><div class="flow-step-title">请求写文件</div><div class="flow-step-desc">write_file /x.txt</div></div>
+<div class="flow-step"><div class="flow-step-num">拦截</div><div class="flow-step-title">弹窗展示</div><div class="flow-step-desc">文件路径 + 内容</div></div>
+<div class="flow-step"><div class="flow-step-num">你</div><div class="flow-step-title">批准/拒绝</div><div class="flow-step-desc">手动确认</div></div>
+<div class="flow-step"><div class="flow-step-num">执行</div><div class="flow-step-title">或阻塞</div><div class="flow-step-desc">记录审计日志</div></div>
+</div>
+
+<h3>AgentGuard：自动安全扫描</h3>
+<p>Hermes 内置 AgentGuard，扫描所有命令中的敏感操作（删除系统文件、访问敏感目录、泄露 API Key 等）。</p>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes security audit</code><span class="desc">审计 safety 配置</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes security scan --path ~/.hermes/skills</code><span class="desc">扫描第三方技能</span></div>
+
+<h3>沙箱执行：隔离危险操作</h3>
+<p>切换 terminal backend 到 Docker/Modal，让 Agent 的命令在隔离容器中运行：</p>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes config set terminal.backend docker</code><span class="desc">Docker 沙箱</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes config set terminal.backend modal</code><span class="desc">Modal 云端沙箱</span></div>
+
+<p>容器内挂载只读目录、限制网络白名单，即使 Agent 被 prompt injection 也破坏不了宿主机。</p>
+
+<h3>数据隐私 Checklist</h3>
+<table>
+<tr><th>场景</th><th>配置</th></tr>
+<tr><td>API Key 不写进代码</td><td>存在 <code>~/.hermes/.env</code>（权限 600）</td></tr>
+<tr><td>敏感文件不让 Agent 读</td><td><code>file_read_allowlist</code> 限制路径</td></tr>
+<tr><td>对话内容不外传</td><td><code>privacy.redact_pii</code> 自动脱敏</td></tr>
+<tr><td>所有操作留痕</td><td><code>hermes logs</code> + 网关日志</td></tr>
+</table>
+
+<div class="keypoint" style="background:linear-gradient(90deg,var(--rose-soft),transparent 80%);border-color:rgba(251,113,133,.3)"><div class="ki">🛡️</div><div class="kt"><strong>企业部署底线：</strong>write_approval 开 + AgentGuard 开 + terminal 进 Docker 沙箱。三层防护后，即使 Agent 被攻击，破坏也被限制在容器内。</div></div>
+</section>
+
+<!-- ===== 模块六 ===== -->
+<section id="m6" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 06 · P2 · 🔴 高级</div><h2><span class="ico">🎭</span>Profile 工程化</h2></div>
+<p>单个 Profile 是个人助理，<strong style="color:var(--gold)">多个 Profile 就是一支 AI 团队</strong>。用 Git 管理、团队共享、批量部署——把 Profile 当代码对待。</p>
+
+<h3>Profile 即代码</h3>
+<pre><code><span class="c"># 初始化一个 Profile 为 Git 仓库</span>
+<span class="k">cd</span> ~/.hermes/profiles/my-agent
+<span class="k">git init</span> <span class="o">&&</span> <span class="k">git add</span> SOUL.md config.yaml memories/ skills/
+<span class="k">git commit</span> <span class="o">-m</span> <span class="s">"v1.0: 财务分析 Agent"</span>
+
+<span class="c"># 团队成员拉取并安装</span>
+<span class="k">hermes</span> profile install git@github.com:team/finance-agent.git
+
+<span class="c"># 发布更新</span>
+<span class="k">hermes</span> profile update finance-agent <span class="c"># 拉取最新，保留用户的记忆不变</span></code></pre>
+
+<h3>Profile 分发</h3>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes profile export finance</code><span class="desc">打包为 ZIP</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes profile import finance.zip</code><span class="desc">从 ZIP 导入</span></div>
+
+<h3>Profile 间隔离与共享</h3>
+<table>
+<tr><th>维度</th><th>独立</th><th>可共享</th></tr>
+<tr><td>SOUL.md</td><td>✓ 每个身份独立人格</td><td>—</td></tr>
+<tr><td>config.yaml</td><td>✓ 不同模型/工具</td><td>—</td></tr>
+<tr><td>skills/</td><td>✓</td><td>✓ external_dirs 指向公共目录</td></tr>
+<tr><td>memories/</td><td>✓</td><td>—</td></tr>
+<tr><td>plugins/</td><td>✓</td><td>✓ 共享安装</td></tr>
+</table>
+
+<div class="keypoint"><div class="ki">🏗️</div><div class="kt"><strong>团队最佳实践：</strong>建一个 <code>base-agent</code> Profile 作为模板（含通用 skills + 安全配置），每个成员 <code>profile create --from base-agent</code> 派生自己的，再各自定制 SOUL.md。</div></div>
+</section>
+
+<!-- ===== 模块七 ===== -->
+<section id="m7" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 07 · P2 · 🔴 高级</div><h2><span class="ico">🔗</span>多 Agent 调度与协作</h2></div>
+<p>一个 Agent 是瑞士军刀，<strong style="color:var(--gold)">多个 Agent 分工协作才是生产线</strong>。Hermes 支持 Master 拆解任务、路由给专业子 Agent、汇总结果。</p>
+
+<h3>Delegation 调度架构</h3>
+<div class="flow">
+<div class="flow-step"><div class="flow-step-num">你</div><div class="flow-step-title">一句话需求</div><div class="flow-step-desc">「重构支付模块」</div></div>
+<div class="flow-step"><div class="flow-step-num">Master</div><div class="flow-step-title">拆解任务</div><div class="flow-step-desc">Hermes 分解为子任务</div></div>
+<div class="flow-step"><div class="flow-step-num">平行</div><div class="flow-step-title">3 个 Agent</div><div class="flow-step-desc">Codex·Claude·Hermes</div></div>
+<div class="flow-step"><div class="flow-step-num">汇总</div><div class="flow-step-title">整合输出</div><div class="flow-step-desc">Master 合并结果</div></div>
+</div>
+
+<h3>启用 Delegation</h3>
+<pre><code><span class="c"># config.yaml:</span>
+<span class="k">delegation</span>:
+  <span class="o">enabled</span>: <span class="k">true</span>
+  <span class="o">max_concurrent_children</span>: <span class="s">3</span>  <span class="c"># 最多 3 个子 Agent 并行</span>
+  <span class="o">max_iterations</span>: <span class="s">50</span>
+  <span class="o">child_timeout_seconds</span>: <span class="s">600</span></code></pre>
+
+<h3>子 Agent 选型策略</h3>
+<table>
+<tr><th>任务类型</th><th>推荐子 Agent</th><th>理由</th></tr>
+<tr><td>写代码 / 重构</td><td>Codex (GPT-5)</td><td>编码质量最高</td></tr>
+<tr><td>代码审查</td><td>Claude Code</td><td>分析深度强</td></tr>
+<tr><td>数据分析 / 报表</td><td>Hermes (finance profile)</td><td>本地工具链</td></tr>
+<tr><td>文档 / 邮件</td><td>Hermes (default profile)</td><td>灵活 + 记忆</td></tr>
+<tr><td>浏览器操作</td><td>Hermes + browser toolset</td><td>CDP 直接控制</td></tr>
+</table>
+
+<h3>Kanban 多 Agent 看板</h3>
+<p>不想手动 orchestrate？用 Kanban 系统让多个 Agent 从共享任务池里自动取任务：</p>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes kanban create --title "重构支付模块" --assignee codex</code><span class="desc">创建任务指派给 Codex</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes kanban dispatch</code><span class="desc">调度器自动分发任务给空闲 Agent</span></div>
+
+<div class="keypoint"><div class="ki">⚡</div><div class="kt"><strong>一句话理解：</strong>Delegation = 同步调度（Master 等所有子 Agent 完成再汇总），Kanban = 异步调度（任务丢进池子，谁有空谁接）。</div></div>
+</section>
+
+<!-- ===== 模块八 ===== -->
+<section id="m8" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 08 · P2 · 🟡 中等</div><h2><span class="ico">🖥️</span>Computer Use 桌面自动化</h2></div>
+<p>macOS 用户独享——<strong style="color:var(--gold)">让 Hermes 在后台控制你的桌面</strong>：截图、点击、打字、滚动，不抢你的鼠标和焦点。你可以和 Agent 共用一台 Mac。</p>
+
+<h3>安装与启动</h3>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes computer-use setup</code><span class="desc">安装 cua-driver</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes config set toolsets [..., computer_use]</code><span class="desc">启用工具集</span></div>
+
+<h3>工作流程：SOM（元素标记）模式</h3>
+<pre><code><span class="c"># Agent 的标准操作流程</span>
+<span class="c"># 1. 截屏 + 标记每个可交互元素</span>
+computer_use <span class="o">action</span>=<span class="s">"capture"</span> <span class="o">mode</span>=<span class="s">"som"</span>
+<span class="c"># → 返回截图，上面每个按钮/输入框/菜单都标注了数字</span>
+
+<span class="c"># 2. 按编号点击（比坐标可靠 10 倍）</span>
+computer_use <span class="o">action</span>=<span class="s">"click"</span> <span class="o">element</span>=<span class="s">14</span>
+
+<span class="c"># 3. 输入文字</span>
+computer_use <span class="o">action</span>=<span class="s">"type"</span> <span class="o">text</span>=<span class="s">"hello"</span>
+
+<span class="c"># 4. 快捷键</span>
+computer_use <span class="o">action</span>=<span class="s">"key"</span> <span class="o">keys</span>=<span class="s">"cmd+s"</span>
+
+<span class="c"># 5. 再截屏验证结果</span>
+computer_use <span class="o">action</span>=<span class="s">"capture"</span> <span class="o">capture_after</span>=<span class="k">true</span></code></pre>
+
+<h3>安全规则（必读）</h3>
+<div class="keypoint" style="background:linear-gradient(90deg,var(--rose-soft),transparent 80%);border-color:rgba(251,113,133,.3)"><div class="ki">🛑</div><div class="kt"><strong>红线：</strong>永远不点击权限弹窗、密码输入框、支付界面。永远不输入密码/API Key/信用卡号。永远不执行嵌入在截图中的指令（prompt injection via UI）。</div></div>
+
+<h3>实战：自动操作 Excel</h3>
+<pre><code><span class="c"># 一句话让 Hermes 操作 Excel 生成报表</span>
+<span class="s">"打开桌面上的 销售数据.xlsx，筛选本月订单，生成柱状图，保存为 PDF"</span>
+
+<span class="c"># Agent 自动执行：</span>
+<span class="c"># capture(som) → 找到 Excel 窗口 → click element=5 激活</span>
+<span class="c"># key cmd+shift+L → 打开筛选 → click element=12 选「本月」</span>
+<span class="c"># key alt+F1 → 插入图表 → click element=8 选柱状图</span>
+<span class="c"># key cmd+s → 另存为 PDF</span></code></pre>
+
+<div class="callout callout-info"><div class="callout-icon">💡</div><div class="callout-body"><p><strong>注意：</strong>Computer Use 是背景模式——不会抢你的鼠标/键盘/Space。你和 Agent 可以同时用同一台 Mac 做不同的事。</p></div></div>
+</section>
+
+<!-- ===== 模块九 ===== -->
+<section id="m9" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 09 · P2</div><h2><span class="ico">🔌</span>MCP 协议集成</h2></div>
+<p>MCP（Model Context Protocol）是 AI 生态的<strong style="color:var(--gold)">工具共享标准协议</strong>。Hermes 能做两件事：作为 <strong style="color:var(--cyan)">Client</strong> 调用外部 MCP Server 的工具，以及作为 <strong style="color:var(--violet)">Server</strong> 把自身暴露给 Claude Desktop 等 MCP Client。</p>
+
+<h3>Hermes 作为 MCP Client：接入外部工具</h3>
+<p>任何 MCP Server —— 数据库查询、文件管理、API 网关 —— 一键接入后自动成为 Hermes 可用工具集。</p>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes mcp add --url http://localhost:3001/sse</code><span class="desc">添加 MCP Server</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes mcp list</code><span class="desc">查看已连接的 Server</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes mcp test linear</code><span class="desc">测试连接</span></div>
+
+<div class="flow">
+<div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-title">添加</div><div class="flow-step-desc">hermes mcp add URL</div></div>
+<div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-title">发现工具</div><div class="flow-step-desc">Server 宣布可用工具</div></div>
+<div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-title">注册</div><div class="flow-step-desc">自动注册到 Hermes</div></div>
+<div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-title">调用</div><div class="flow-step-desc">Agent 透明调用</div></div>
+</div>
+
+<h3>Hermes 作为 MCP Server：暴露给其他 Agent</h3>
+<p>运行后，Claude Desktop / Cursor / 任何 MCP Client 都能调用 Hermes 的全部工具（terminal + file + web_search + 自定义工具）。</p>
+<pre><code><span class="c"># 启动 Hermes MCP Server</span>
+<span class="k">hermes</span> mcp serve <span class="o">--port</span> <span class="s">3100</span>
+
+<span class="c"># 在其他 MCP Client 的配置中添加：</span>
+{
+  <span class="s">"mcpServers"</span>: {
+    <span class="s">"hermes"</span>: {
+      <span class="s">"url"</span>: <span class="s">"http://localhost:3100/sse"</span>
+    }
+  }
+}</code></pre>
+
+<div class="keypoint"><div class="ki">🔌</div><div class="kt"><strong>实际价值：</strong>你写了一个 MCP Server（比如查询公司内部数据库），用它连上 Hermes → Hermes 就能用自然语言替你查数据库。反过来，你让 Hermes 作为 MCP Server → Claude / Cursor 就能直接用 Hermes 的工具链跑命令、读文件。</div></div>
+</section>
+
+<!-- ===== 模块十 ===== -->
+<section id="m10" class="reveal">
+<div class="section-header"><div class="section-num">MODULE 10 · P2</div><h2><span class="ico">🔬</span>调试与诊断体系</h2></div>
+<p>Agent 不听话？工具调用失败？响应变慢？掌握这套诊断工具链，<strong style="color:var(--gold)">自己定位问题而非猜测</strong>。</p>
+
+<h3>诊断命令矩阵</h3>
+<table>
+<tr><th>命令</th><th>用途</th><th>什么时候用</th></tr>
+<tr><td><code>hermes doctor</code></td><td>全面环境诊断</td><td>安装后 / 出问题第一步</td></tr>
+<tr><td><code>hermes status</code></td><td>状态总览（模型·密钥·网关）</td><td>确认当前配置</td></tr>
+<tr><td><code>hermes prompt-size</code></td><td>System Prompt 字节拆解</td><td>上下文超限 / 记忆装不下</td></tr>
+<tr><td><code>hermes logs</code></td><td>实时日志 / 历史过滤</td><td>排查任何异常行为</td></tr>
+<tr><td><code>hermes debug</code></td><td>导出完整诊断包</td><td>求助他人 / 提交 Issue</td></tr>
+</table>
+
+<h3>System Prompt 分析</h3>
+<p><code>prompt-size</code> 能告诉你 System Prompt 每一部分占了多少字符——知道 memory 快爆了、skills 太占地方、还是 SOUL 写太长了：</p>
+<pre><code><span class="c"># 输出示例：</span>
+STABLE TIER (identity + tools + skills):     8,234 chars
+  SOUL.md:                                    1,862 chars
+  skills index:                               2,140 chars
+  tool guidance:                                892 chars
+  ...
+CONTEXT TIER (context files):                 4,210 chars
+VOLATILE TIER (memory + time):                1,834 chars
+  MEMORY.md:                                  1,450 chars
+  USER.md:                                      312 chars
+────────────────────────────────────────────
+TOTAL:                                       14,278 chars</code></pre>
+
+<h3>日志排查技巧</h3>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes logs --tail 50</code><span class="desc">最近 50 条日志</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes logs --filter "ERROR"</code><span class="desc">只看错误</span></div>
+<div class="cmd-line"><span class="prompt">$</span><code>hermes logs --filter "rate limit"</code><span class="desc">搜特定关键词</span></div>
+
+<h3>常见故障速查</h3>
+<table>
+<tr><th>现象</th><th>首先排查</th></tr>
+<tr><td>Agent 不调用工具</td><td><code>hermes tools</code> 检查工具集是否启用；确认模型支持 function calling</td></tr>
+<tr><td>回复突然中断</td><td>查看 <code>agent.max_turns</code> 是否达到上限</td></tr>
+<tr><td>工具调用报错</td><td>查看 <code>hermes logs --filter "ERROR"</code> 找具体堆栈</td></tr>
+<tr><td>记忆没生效</td><td><code>/reset</code> 重载；确认 <code>memory_enabled: true</code></td></tr>
+<tr><td>网关连不上</td><td><code>kill -9 $(pgrep -f gateway)</code> 清理僵尸进程</td></tr>
+<tr><td>模型返回 401</td><td><code>hermes status</code> 检查 API Key 是否过期</td></tr>
+</table>
+
+<div class="keypoint" style="background:linear-gradient(90deg,var(--cyan-soft),transparent 80%);border-color:rgba(34,211,238,.3)"><div class="ki">🔬</div><div class="kt"><strong>核心理念：</strong>永远先跑 <code>hermes doctor</code> 再排查。90% 的问题在 doctor 输出里已经有答案。剩下的 10% 靠 <code>logs + prompt-size</code> 定位。</div></div>
+</section>
+
+<div class="footer">
+  <p>Hermes Agent 进阶手册 · 10 大模块 · 从使用者到构建者</p>
+  <p style="margin-top:6px">配套 <a href="hermes-guide.html" style="color:var(--gold)">入门手册</a> 使用效果最佳</p>
+</div>
+
+</main>
+</div>
+
+<button class="to-top" id="toTop">↑</button>
+
+<script>
+const pf=document.getElementById('pf'), tt=document.getElementById('toTop');
+window.addEventListener('scroll',()=>{const h=document.documentElement,p=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;pf.style.width=p+'%';tt.classList.toggle('show',h.scrollTop>600)});
+tt.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+const io2=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io2.unobserve(x.target)}}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(e=>io2.observe(e));
+document.querySelectorAll('.nav-item').forEach(i=>{i.addEventListener('click',()=>{document.querySelector('.sidebar').classList.remove('open')})});
+document.querySelectorAll('.cmd-line').forEach(l=>{const c=l.querySelector('code');if(c&&!l.querySelector('input')){l.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(c.textContent.trim());l.classList.add('copied');setTimeout(()=>l.classList.remove('copied'),1200)}catch{}})}});
+
+// ===== Interactive mechanical particle system =====
+(function(){
+var m=window.matchMedia('(prefers-reduced-motion: reduce)');
+if(m.matches)return;
+var c=document.getElementById('particleCanvas'),ctx=c.getContext('2d'),w,h,particles=[],mouse={x:-999,y:-999},N=80;
+function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+window.addEventListener('mousemove',function(e){mouse.x=e.clientX;mouse.y=e.clientY});
+for(var i=0;i<N;i++)particles.push({
+x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5,
+r:Math.random()*2+.8,c:['#f5b942','#22d3ee','#a78bfa','#34d399','#8892aa'][Math.floor(Math.random()*5)],
+life:Math.random()*300+100,maxLife:400});
+function draw(){
+ctx.clearRect(0,0,w,h);
+for(var i=0;i<particles.length;i++){
+var p=particles[i];
+p.x+=p.vx;p.y+=p.vy;
+if(p.x<0)p.x=w;if(p.x>w)p.x=0;if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+p.life--;if(p.life<=0){p.x=Math.random()*w;p.y=Math.random()*h;p.life=p.maxLife+Math.random()*200}
+var alpha=p.life/p.maxLife*.45;
+var dx=mouse.x-p.x,dy=mouse.y-p.y,dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<160){var force=(160-dist)/160;p.vx-=dx*force*.002;p.vy-=dy*force*.002;
+alpha+=force*.3;if(p.r<3)p.r+=force*.02}
+if(p.r>2.3)p.r-=.01;
+ctx.beginPath();ctx.moveTo(p.x,p.y);
+ctx.lineTo(p.x+p.vx*8,p.y+p.vy*8);
+ctx.strokeStyle=p.c;ctx.globalAlpha=alpha*.5;ctx.lineWidth=p.r*.4;ctx.stroke();
+ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.c;ctx.globalAlpha=alpha;ctx.fill();
+// connections
+for(var j=i+1;j<particles.length;j++){var q=particles[j],d=Math.sqrt((p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y));if(d<90){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle=p.c;ctx.globalAlpha=alpha*.15*(1-d/90);ctx.lineWidth=.4;ctx.stroke()}}
+}
+ctx.globalAlpha=1;
+requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+</body>
+</html>
