@@ -239,18 +239,59 @@ code{font-family:var(--font-mono);background:var(--yellow);color:var(--ink);bord
 .kpi:nth-child(4){background:var(--cyan)}
 .kpi .lab{font-family:var(--font-mono);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 .kpi .val{font-family:var(--font-display);font-size:28px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
-.kpi .ch{font-family:var(--font-mono);font-size:12px;font-weight:700;margin-top:4px}
+.kpi .ch{font-family:var(--font-mono);font-size:12px;font-weight:700;margin-top:4px;display:flex;flex-wrap:wrap;gap:6px}
+.kpi .ch .m{white-space:nowrap}
+/* 语义化颜色：good=利好（绿），bad=利空（红）。不再机械按涨跌 */
+.good{color:var(--green)} .kpi:nth-child(2) .good,.kpi:nth-child(3) .good{color:#aaffaa}
+.bad{color:var(--pink)} .kpi:nth-child(1) .bad{color:var(--orange)}
+/* 达成率进度条 */
+.kpi .goal{margin-top:8px;font-family:var(--font-mono);font-size:10.5px;font-weight:700;opacity:.9}
+.kpi .goal-bar{height:6px;background:rgba(10,10,10,.18);border-radius:0;margin-top:4px;overflow:hidden;border:1.5px solid var(--line)}
+.kpi .goal-bar>div{height:100%;background:var(--ink);transition:width .5s var(--ease)}
+.kpi:nth-child(2) .goal-bar,.kpi:nth-child(3) .goal-bar{background:rgba(255,255,255,.25)}
+.kpi:nth-child(2) .goal-bar>div,.kpi:nth-child(3) .goal-bar>div{background:#fff}
+.kpi .goal .miss{color:#fff;text-decoration:underline}
+/* 兼容旧 up/dn */
 .up{color:var(--green)} .kpi:nth-child(2) .up,.kpi:nth-child(3) .up{color:#aaffaa}
 .dn{color:var(--pink)} .kpi:nth-child(1) .dn{color:var(--orange)}
 .kpi:nth-child(2) .lab,.kpi:nth-child(3) .lab{color:rgba(255,255,255,.85)}
-.chart{display:flex;align-items:flex-end;gap:10px;height:140px;padding:14px;background:var(--ink);border:var(--bw) solid var(--line)}
-.chart .bar{flex:1;position:relative;min-width:8px;transition:transform .14s var(--ease)}
+.chart{display:flex;align-items:flex-end;gap:10px;height:160px;padding:14px 14px 26px;background:var(--ink);border:var(--bw) solid var(--line);position:relative}
+.chart .grp{flex:1;min-width:0;display:flex;align-items:flex-end;justify-content:center;gap:3px;height:100%;position:relative}
+.chart .bar{flex:1;min-width:5px;max-width:18px;position:relative;transition:transform .14s var(--ease),opacity .14s var(--ease);cursor:default}
 .chart .bar.prev{background:#555}
+.chart .bar.yoy{background:#7a4a8a}
 .chart .bar.curr{background:var(--yellow);border:2px solid var(--bg2)}
-.chart .bar.curr:hover{transform:scaleY(1.05);background:var(--orange)}
-.chart .bar small{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--bg)}
-.chartwrap{margin-bottom:28px}
-.leg{display:flex;gap:18px;font-family:var(--font-mono);font-size:12px;font-weight:700;margin:12px 0 6px}
+.chart .bar.curr:hover{transform:scaleY(1.06);background:var(--orange)}
+.chart .grp:hover .bar{opacity:.85}
+.chart .grp:hover .bar.curr{opacity:1}
+.chart .grp .lbl{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--bg);font-weight:700}
+/* tooltip */
+.chart .tt{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg2);color:var(--ink);
+  border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);padding:8px 11px;font-family:var(--font-mono);font-size:11px;font-weight:700;
+  white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s var(--ease);z-index:5;line-height:1.6}
+.chart .grp:hover .tt{opacity:1}
+.chart .tt .tg{display:inline-block;width:8px;height:8px;border:1.5px solid var(--line);margin-right:5px;vertical-align:middle}
+.chart .tt .v{font-family:var(--font-display);font-size:13px}
+.chartwrap{margin-bottom:18px}
+.chart-axis{display:flex;gap:10px;padding:0 14px;margin-top:6px;font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:var(--muted)}
+.chart-axis .grp-l{flex:1;text-align:center;min-width:0}
+/* 图表类型切换 */
+.chart-type{display:flex;gap:0;border:var(--bw) solid var(--line);margin-bottom:12px;font-family:var(--font-mono);font-size:11px;font-weight:700}
+.chart-type button{flex:1;background:var(--bg2);color:var(--ink);border:none;border-right:var(--bw) solid var(--line);padding:7px 8px;cursor:pointer}
+.chart-type button:last-child{border-right:none}
+.chart-type button.on{background:var(--orange);color:var(--bg)}
+/* 示例数据标注 */
+.dash .badge-demo{font-family:var(--font-mono);font-size:10.5px;font-weight:700;background:var(--pink);color:#fff;border:2px solid var(--line);
+  padding:3px 9px;letter-spacing:.04em;animation:pulse-badge 2s var(--ease) infinite}
+@keyframes pulse-badge{50%{opacity:.7}}
+.dash .tbl-view{display:none;border:var(--bw) solid var(--line);box-shadow:var(--sh-sm)}
+.dash .tbl-view.on{display:block}
+.dash .tbl-view table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12.5px;font-weight:700}
+.dash .tbl-view th,.dash .tbl-view td{padding:9px 12px;text-align:right;border-bottom:2px solid var(--line)}
+.dash .tbl-view th:first-child,.dash .tbl-view td:first-child{text-align:left}
+.dash .tbl-view thead th{background:var(--ink);color:var(--yellow);font-size:11px;text-transform:uppercase}
+.dash .tbl-view tbody tr:last-child td{border-bottom:none}
+.leg{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--font-mono);font-size:12px;font-weight:700;margin:12px 0 6px}
 .leg i{display:inline-block;width:12px;height:12px;border:2px solid var(--line);margin-right:6px;vertical-align:middle}
 
 /* 告警条 */
@@ -646,26 +687,21 @@ mark{background:var(--yellow);color:var(--ink);padding:0 2px}
   <div class="wrap">
     <h2 class="h"><span class="num">6</span><span>收入 / 成本 / 利润看板（同比 + 环比）</span></h2>
     <p class="lead">a02 在华为时的成名作是「一页纸经营罗盘」，把 80 页 PPT 压成 15 页。这里我们把它做成实时看板：上半页核心指标，下半页异常归因。</p>
-    <div class="dash">
+    <div class="dash" id="dashBoard">
       <div class="head">
-        <div class="t">📊 经营罗盘 · 2026-06（日更）</div>
-        <div class="f"><span class="seg on">本月</span><span class="seg">上月</span><span class="seg">本季</span><span class="seg">本年</span></div>
+        <div class="t" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">📊 经营罗盘 · <span id="dashPeriod">本月</span><span class="badge-demo">示例数据</span></div>
+        <div class="f" id="dashSegs"><span class="seg on" data-p="m">本月</span><span class="seg" data-p="prev">上月</span><span class="seg" data-p="q">本季</span><span class="seg" data-p="y">本年</span></div>
       </div>
-      <div class="kpi-row">
-        <div class="kpi"><div class="lab">营业收入</div><div class="val">¥3,842k</div><div class="ch dn">▲ 12.4% MoM · ▲ 8.1% YoY</div></div>
-        <div class="kpi"><div class="lab">成本</div><div class="val">¥2,910k</div><div class="ch up">▲ 15.7% MoM · ▲ 6.2% YoY</div></div>
-        <div class="kpi"><div class="lab">毛利</div><div class="val">¥932k</div><div class="ch up">▲ 2.1% MoM · ▲ 14.3% YoY</div></div>
-        <div class="kpi"><div class="lab">毛利率</div><div class="val">24.3%</div><div class="ch dn">▼ 2.5pp MoM · ▲ 1.3pp YoY</div></div>
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="chart-type" id="chartType">
+        <button type="button" class="on" data-type="bar">柱状对比</button>
+        <button type="button" data-type="tbl">数据明细</button>
       </div>
-      <div class="leg"><span><i style="background:#555"></i>上月</span><span><i style="background:var(--yellow)"></i>本月</span></div>
-      <div class="chart chartwrap">
-        <div class="bar prev" style="height:52%"><small>1月</small></div><div class="bar curr" style="height:58%"></div>
-        <div class="bar prev" style="height:60%"></div><div class="bar curr" style="height:66%"><small>2月</small></div>
-        <div class="bar prev" style="height:68%"></div><div class="bar curr" style="height:72%"><small>3月</small></div>
-        <div class="bar prev" style="height:64%"></div><div class="bar curr" style="height:70%"><small>4月</small></div>
-        <div class="bar prev" style="height:72%"></div><div class="bar curr" style="height:78%"><small>5月</small></div>
-        <div class="bar prev" style="height:78%"></div><div class="bar curr" style="height:88%"><small>6月</small></div>
+      <div id="chartArea">
+        <div class="leg"><span><i style="background:#7a4a8a"></i>去年同期</span><span><i style="background:#555"></i>上一周期</span><span><i style="background:var(--yellow)"></i>当前</span></div>
+        <div class="chart chartwrap" id="dashChart"></div>
       </div>
+      <div class="tbl-view" id="dashTable"></div>
     </div>
     <div class="grid g2" style="margin-top:20px">
       <div class="card"><h4>同比（YoY）怎么看</h4><p>剔除季节性的「真增长」。与去年同期比，看 <b>结构性变化</b>，例如品类升级、客户结构迁移。</p></div>
@@ -917,16 +953,163 @@ forecast = baseline(<span class="k">历史3月加权</span>) × season_factor(�
     pre.appendChild(btn);
   });
 
-  // ===== 5. 看板 Tab 切换 =====
-  document.querySelectorAll('.dash').forEach(function(dash){
-    var segs = dash.querySelectorAll('.seg');
-    segs.forEach(function(seg){
+  // ===== 5. 经营看板：数据驱动 =====
+  var DASH = {
+    // 4 个 KPI：收入/成本/毛利/毛利率
+    // higherBetter=true 表示「数值高更好」（收入、毛利、毛利率），成本=false
+    // 每个周期含：v 当前值, prev 上一周期, yoy 去年同期, goal 目标, fmt 单位, suffix
+    periods:{
+      m:{  label:'本月（2026-06）', prevLabel:'上月',
+        rev:{v:3842,prev:3418,yoy:3553,goal:3600,higherBetter:true},
+        cost:{v:2910,prev:2515,yoy:2740,goal:2700,higherBetter:false},
+        gp:{v:932, prev:903, yoy:813, goal:950,higherBetter:true},
+        gm:{v:24.3,prev:26.4,yoy:22.9,goal:26,higherBetter:true,suffix:'%'}
+      },
+      prev:{label:'上月（2026-05）', prevLabel:'前月',
+        rev:{v:3418,prev:3150,yoy:3220,goal:3400,higherBetter:true},
+        cost:{v:2515,prev:2390,yoy:2380,goal:2500,higherBetter:false},
+        gp:{v:903, prev:760, yoy:840, goal:900,higherBetter:true},
+        gm:{v:26.4,prev:24.1,yoy:26.1,goal:26,higherBetter:true,suffix:'%'}
+      },
+      q:{  label:'本季（2026 Q2）', prevLabel:'上季',
+        rev:{v:10760,prev:9680,yoy:9420,goal:10500,higherBetter:true},
+        cost:{v:8095,prev:7290,yoy:7710,goal:7800,higherBetter:false},
+        gp:{v:2665,prev:2390,yoy:1710,goal:2700,higherBetter:true},
+        gm:{v:24.8,prev:24.7,yoy:18.2,goal:26,higherBetter:true,suffix:'%'}
+      },
+      y:{  label:'本年（2026 YTD）', prevLabel:'去年',
+        rev:{v:20440,prev:18100,yoy:16800,goal:20000,higherBetter:true},
+        cost:{v:15385,prev:14080,yoy:13150,goal:15000,higherBetter:false},
+        gp:{v:5055,prev:4020,yoy:3650,goal:5000,higherBetter:true},
+        gm:{v:24.7,prev:22.2,yoy:21.7,goal:25,higherBetter:true,suffix:'%'}
+      }
+    },
+    // 6 个月趋势（按当前周期变化，示例）
+    series:{
+      m:[{m:'1月',yoy:3120,prev:3200,curr:2890},{m:'2月',yoy:3240,prev:3350,curr:3210},
+         {m:'3月',yoy:3360,prev:3250,curr:3570},{m:'4月',yoy:3290,prev:3380,curr:3420},
+         {m:'5月',yoy:3418,prev:3350,curr:3418},{m:'6月',yoy:3553,prev:3418,curr:3842}],
+      prev:[{m:'12月',yoy:2980,prev:3050,curr:3180},{m:'1月',yoy:3120,prev:3200,curr:2890},
+         {m:'2月',yoy:3240,prev:3350,curr:3210},{m:'3月',yoy:3360,prev:3250,curr:3570},
+         {m:'4月',yoy:3290,prev:3380,curr:3420},{m:'5月',yoy:3418,prev:3350,curr:3418}],
+      q:[{m:'4月',yoy:3290,prev:3380,curr:3420},{m:'5月',yoy:3418,prev:3350,curr:3418},
+         {m:'6月',yoy:3553,prev:3418,curr:3842}],
+      y:[{m:'Q1',yoy:7980,prev:8420,curr:9680},{m:'Q2',yoy:9420,prev:9680,curr:10760}]
+    }
+  };
+  var PERIOD_LABEL = {m:'本月',prev:'上月',q:'本季',y:'本年'};
+  var KPI_DEF = [
+    {key:'rev',lab:'营业收入',unit:'¥',div:1},
+    {key:'cost',lab:'成本',unit:'¥',div:1},
+    {key:'gp',lab:'毛利',unit:'¥',div:1},
+    {key:'gm',lab:'毛利率',unit:'',div:1,suffix:'%'}
+  ];
+
+  function fmtNum(n,unit,suffix){
+    suffix=suffix||'';
+    // 货币值以“千”为单位存（3842 = ¥3,842k）。加千位分隔 + k 后缀
+    if(unit==='¥'){
+      return unit+n.toLocaleString('en-US')+'k'+suffix;
+    }
+    if(n>=10000) return unit+(n/1000).toFixed(0)+'k'+suffix;
+    return unit+n.toFixed(1).replace(/\.0$/,'')+suffix;
+  }
+  // 语义化涨跌：按 higherBetter 判断利好/利空，并返回箭头
+  function semClsVal(pct,hb){
+    var a=Math.abs(pct).toFixed(1).replace(/\.0$/,'');
+    if(Math.abs(pct)<0.05) return {cls:'',arrow:'— '+a+'%'};
+    var up=pct>0, good=up?hb:!hb;
+    return {cls:good?'good':'bad',arrow:(up?'▲ ':'▼ ')+a+'%'};
+  }
+  function semClsPP(d,hb){
+    var a=Math.abs(d).toFixed(1).replace(/\.0$/,'');
+    if(Math.abs(d)<0.05) return {cls:'',arrow:'— '+a+'pp'};
+    var up=d>0, good=up?hb:!hb;
+    return {cls:good?'good':'bad',arrow:(up?'▲ ':'▼ ')+a+'pp'};
+  }
+
+  function renderKPI(p){
+    var data = DASH.periods[p];
+    var html = KPI_DEF.map(function(k){
+      var d = data[k.key];
+      var isPP = !!k.suffix;  // 百分点
+      var momS = isPP ? semClsPP(d.v-d.prev,d.higherBetter) : semClsVal((d.v-d.prev)/d.prev*100,d.higherBetter);
+      var yoyS = isPP ? semClsPP(d.v-d.yoy,d.higherBetter) : semClsVal((d.v-d.yoy)/d.yoy*100,d.higherBetter);
+      var achv = Math.round(d.v/d.goal*100);
+      var achvCls = achv>=100?'good':(achv>=90?'':'bad');
+      var barW = Math.min(achv,100);
+      return '<div class="kpi"><div class="lab">'+k.lab+'</div>'+
+        '<div class="val">'+fmtNum(d.v,k.unit,k.suffix)+'</div>'+
+        '<div class="ch"><span class="m '+momS.cls+'">'+momS.arrow+' MoM</span><span class="m '+yoyS.cls+'">'+yoyS.arrow+' YoY</span></div>'+
+        '<div class="goal">目标 '+fmtNum(d.goal,k.unit,k.suffix)+' · 达成 <b class="'+achvCls+'">'+achv+'%</b></div>'+
+        '<div class="goal-bar"><div style="width:'+barW+'%"></div></div></div>';
+    }).join('');
+    document.getElementById('kpiRow').innerHTML = html;
+  }
+  function renderChart(p){
+    var ser = DASH.series[p];
+    var max = 0;
+    ser.forEach(function(s){ ['yoy','prev','curr'].forEach(function(k){ if(s[k]>max)max=s[k]; }); });
+    max = max*1.15 || 1;
+    var html = ser.map(function(s){
+      return '<div class="grp">'+
+        '<div class="tt"><div><span class="tg" style="background:#7a4a8a"></span>去年 <span class="v">¥'+s.yoy+'k</span></div>'+
+        '<div><span class="tg" style="background:#555"></span>上期 <span class="v">¥'+s.prev+'k</span></div>'+
+        '<div><span class="tg" style="background:var(--yellow)"></span>当前 <span class="v">¥'+s.curr+'k</span></div></div>'+
+        '<div class="bar yoy" style="height:'+(s.yoy/max*100)+'%"></div>'+
+        '<div class="bar prev" style="height:'+(s.prev/max*100)+'%"></div>'+
+        '<div class="bar curr" style="height:'+(s.curr/max*100)+'%"></div>'+
+        '<div class="lbl">'+s.m+'</div></div>';
+    }).join('');
+    document.getElementById('dashChart').innerHTML = html;
+  }
+  function renderTable(p){
+    var data = DASH.periods[p];
+    var ser = DASH.series[p];
+    var rows = ser.map(function(s){
+      return '<tr><td>'+s.m+'</td><td>¥'+s.yoy+'k</td><td>¥'+s.prev+'k</td><td><b>¥'+s.curr+'k</b></td></tr>';
+    }).join('');
+    document.getElementById('dashTable').innerHTML =
+      '<table><thead><tr><th>指标</th><th>当前</th><th>目标</th><th>达成</th></tr></thead><tbody>'+
+      KPI_DEF.map(function(k){
+        var d=data[k.key]; var achv=Math.round(d.v/d.goal*100);
+        return '<tr><td>'+k.lab+'</td><td>'+fmtNum(d.v,k.unit,k.suffix)+'</td>'+
+          '<td>'+fmtNum(d.goal,k.unit,k.suffix)+'</td>'+
+          '<td class="'+(achv>=100?'good':achv>=90?'':'bad')+'">'+achv+'%</td></tr>';
+      }).join('')+
+      '</tbody></table>'+
+      '<table style="margin-top:10px"><thead><tr><th>月份</th><th>去年同期</th><th>上一周期</th><th>当前</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  var dashEl = document.getElementById('dashBoard');
+  if(dashEl){
+    var curP = 'm';
+    function refreshDash(){
+      renderKPI(curP); renderChart(curP); renderTable(curP);
+      document.getElementById('dashPeriod').textContent = DASH.periods[curP].label;
+    }
+    refreshDash();
+    document.querySelectorAll('#dashSegs .seg').forEach(function(seg){
       seg.addEventListener('click', function(){
-        segs.forEach(function(s){ s.classList.remove('on'); });
+        document.querySelectorAll('#dashSegs .seg').forEach(function(s){s.classList.remove('on');});
         seg.classList.add('on');
+        curP = seg.getAttribute('data-p');
+        refreshDash();
       });
     });
-  });
+    // 图表类型切换
+    var chartArea = document.getElementById('chartArea');
+    var dashTable = document.getElementById('dashTable');
+    document.querySelectorAll('#chartType button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('#chartType button').forEach(function(b){b.classList.remove('on');});
+        btn.classList.add('on');
+        var isTbl = btn.getAttribute('data-type')==='tbl';
+        chartArea.style.display = isTbl?'none':'';
+        dashTable.classList.toggle('on', isTbl);
+      });
+    });
+  }
 
   // ===== 6. 返回顶部 =====
   var top = document.getElementById('toTop');
