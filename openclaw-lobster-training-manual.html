@@ -109,9 +109,9 @@ header.hero{position:relative;padding:64px 22px 56px;overflow:hidden}
 
 /* ===== STICKY TOC ===== */
 nav.toc{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:var(--bw) solid var(--line)}
-nav.toc .scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;padding:2px 0}
-nav.toc .scroll::-webkit-scrollbar{display:none}
-nav.toc .toc-bar{display:flex;align-items:center;gap:10px;max-width:1180px;margin:0 auto;padding:11px 22px}
+nav.toc .toc-rows{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+nav.toc .scroll{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+nav.toc .toc-bar{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto;padding:11px 22px}
 #tocSearchBtn{flex:none;font-family:var(--font-mono);font-size:13px;font-weight:700;padding:8px 14px;
   border:var(--bw) solid var(--line);background:var(--bg2);color:var(--ink);cursor:pointer;
   display:inline-flex;align-items:center;gap:6px;transition:transform .12s var(--ease),background .12s var(--ease)}
@@ -393,21 +393,25 @@ mark{background:var(--yellow);color:var(--ink);padding:0 2px}
 </header>
 
 <!-- TOC -->
-<nav class="toc"><div class="toc-bar"><div class="scroll">
-  <a href="#req"><span class="n">!</span> 前置必读</a>
-  <a href="#overview"><span class="n">0</span> 全景图</a>
-  <a href="#install"><span class="n">1</span> 下载与安装</a>
-  <a href="#config"><span class="n">2</span> 工具配置</a>
-  <a href="#notify"><span class="n">3</span> 飞书 / TG 接入</a>
-  <a href="#connect"><span class="n">4</span> 打通业务系统</a>
-  <a href="#pipeline"><span class="n">5</span> 数据聚合清洗</a>
-  <a href="#dashboard"><span class="n">6</span> 同比环比看板</a>
-  <a href="#budget"><span class="n">7</span> 预算偏差预警</a>
-  <a href="#forecast"><span class="n">8</span> 销售预测</a>
-  <a href="#diagnose"><span class="n">9</span> 盈利诊断</a>
-  <a href="#report"><span class="n">10</span> 分析报告</a>
-  <a href="#nlq"><span class="n">11</span> 自然语言问答</a>
-  <a href="#checklist"><span class="n">12</span> 收尾清单</a>
+<nav class="toc"><div class="toc-bar"><div class="toc-rows">
+  <div class="scroll">
+    <a href="#req"><span class="n">!</span> 前置必读</a>
+    <a href="#overview"><span class="n">0</span> 全景图</a>
+    <a href="#install"><span class="n">1</span> 下载与安装</a>
+    <a href="#config"><span class="n">2</span> 工具配置</a>
+    <a href="#notify"><span class="n">3</span> 飞书 / TG 接入</a>
+    <a href="#connect"><span class="n">4</span> 打通业务系统</a>
+    <a href="#pipeline"><span class="n">5</span> 数据聚合清洗</a>
+  </div>
+  <div class="scroll">
+    <a href="#dashboard"><span class="n">6</span> 同比环比看板</a>
+    <a href="#budget"><span class="n">7</span> 预算偏差预警</a>
+    <a href="#forecast"><span class="n">8</span> 销售预测</a>
+    <a href="#diagnose"><span class="n">9</span> 盈利诊断</a>
+    <a href="#report"><span class="n">10</span> 分析报告</a>
+    <a href="#nlq"><span class="n">11</span> 自然语言问答</a>
+    <a href="#checklist"><span class="n">12</span> 收尾清单</a>
+  </div>
 </div>
   <button class="seg" id="tocSearchBtn" type="button" aria-label="搜索手册" title="搜索手册 (按 / )"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>搜索</button>
 </div></nav>
