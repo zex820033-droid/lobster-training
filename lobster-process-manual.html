@@ -1,0 +1,1288 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenClaw · 龙虾训练 —— 标准化流程手册</title>
+<meta name="description" content="训练师实战指南：从首次安装到闭环运营龙虾——日常分析、看板、预测,以及面向财务/CRM/ERP 的自然语言查询。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   OpenClaw 龙虾训练手册 — v3 克制精致版
+   参考:Linear / Vercel Docs / Stripe / Astro Starlight
+   原则:去装饰、强排版、统一中性色、单一强调色、放大留白
+   ===================================================================== */
+
+:root{
+  /* 中性色阶(zinc 系,克制) */
+  --bg:#FBFAF7;
+  --bg-2:#F4F2EC;
+  --surface:#FFFFFF;
+  --surface-2:#F7F6F2;
+  --overlay:rgba(251,250,247,.82);
+
+  --text:#18181B;
+  --text-2:#3F3F46;
+  --muted:#71717A;
+  --muted-2:#A1A1AA;
+
+  --line:#E4E1D8;
+  --line-2:#EFEDE6;
+  --line-soft:rgba(24,24,27,.07);
+
+  /* 唯一强调色:龙虾红(现代饱和版) */
+  --accent:#DC2626;
+  --accent-2:#B91C1C;
+  --accent-deep:#991B1B;
+  --accent-soft:#FEF2F2;
+  --accent-line:#FECACA;
+
+  /* callout 语义色(克制使用) */
+  --green:#15803D;
+  --green-soft:#F0FDF4;
+  --green-line:#BBF7D0;
+  --amber:#B45309;
+  --amber-soft:#FFFBEB;
+  --amber-line:#FDE68A;
+  --blue:#1D4ED8;
+  --blue-soft:#EFF6FF;
+  --blue-line:#BFDBFE;
+  --slate:#475569;
+  --slate-soft:#F8FAFC;
+  --slate-line:#E2E8F0;
+
+  /* 代码(始终深色) */
+  --code-bg:#0C0E14;
+  --code-surface:#11141C;
+  --code-text:#E4E7EE;
+  --code-comment:#6B7280;
+  --code-key:#F4A6C0;
+  --code-str:#9CCC8E;
+  --code-num:#E8B86B;
+  --code-fn:#88B0F0;
+
+  --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-serif:"Fraunces","Noto Serif SC","Songti SC",Georgia,serif;
+  --font-mono:"JetBrains Mono","SF Mono","Menlo",monospace;
+
+  --r:10px;
+  --r-lg:14px;
+  --r-xl:20px;
+
+  --shadow-sm:0 1px 2px rgba(24,24,27,.04);
+  --shadow:0 1px 3px rgba(24,24,27,.05),0 1px 2px rgba(24,24,27,.03);
+  --shadow-lg:0 4px 12px rgba(24,24,27,.06),0 16px 40px rgba(24,24,27,.05);
+}
+
+[data-theme="dark"]{
+  --bg:#08090A;
+  --bg-2:#0C0D0F;
+  --surface:#101113;
+  --surface-2:#16181C;
+  --overlay:rgba(8,9,10,.82);
+
+  --text:#FAFAFA;
+  --text-2:#D4D4D8;
+  --muted:#A1A1AA;
+  --muted-2:#71717A;
+
+  --line:rgba(255,255,255,.08);
+  --line-2:rgba(255,255,255,.045);
+  --line-soft:rgba(255,255,255,.05);
+
+  --accent:#F87171;
+  --accent-2:#EF4444;
+  --accent-deep:#FCA5A5;
+  --accent-soft:rgba(248,113,113,.08);
+  --accent-line:rgba(248,113,113,.18);
+
+  --green:#4ADE80;
+  --green-soft:rgba(74,222,128,.08);
+  --green-line:rgba(74,222,128,.18);
+  --amber:#FBBF24;
+  --amber-soft:rgba(251,191,36,.08);
+  --amber-line:rgba(251,191,36,.2);
+  --blue:#60A5FA;
+  --blue-soft:rgba(96,165,250,.08);
+  --blue-line:rgba(96,165,250,.18);
+  --slate:#94A3B8;
+  --slate-soft:rgba(148,163,184,.08);
+  --slate-line:rgba(148,163,184,.16);
+
+  --code-bg:#050608;
+  --code-surface:#0C0E14;
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.3);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.5),0 16px 40px rgba(0,0,0,.4);
+}
+
+/* — Reset — */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font-sans);color:var(--text);background:var(--bg);line-height:1.8;font-size:16px;font-weight:400;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;transition:background .2s ease,color .2s ease}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(220,38,38,.15);color:var(--text)}
+img,svg{max-width:100%;display:block}
+code,pre,kbd{font-family:var(--font-mono);font-feature-settings:"liga" 0}
+
+/* — Reading progress (唯一保留的动效) — */
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:200;transition:width .1s linear}
+
+/* — Layout — */
+.shell{display:grid;grid-template-columns:264px minmax(0,1fr) 208px;min-height:100vh}
+
+/* ===== SIDEBAR ===== */
+.sidebar{background:var(--bg-2);color:var(--text-2);position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--line);transition:background .2s,border-color .2s}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--line-soft);border-radius:2px}
+.sb-brand{padding:28px 24px 22px;border-bottom:1px solid var(--line)}
+.sb-brand .logo{display:flex;align-items:center;gap:11px}
+.sb-brand .d{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;font-size:17px;flex-shrink:0}
+.sb-brand .tt{font-family:var(--font-serif);font-weight:700;color:var(--text);font-size:15.5px;line-height:1.25;letter-spacing:-.01em}
+.sb-brand .tt em{font-style:normal;color:var(--accent)}
+.sb-brand .en{font-family:var(--font-serif);font-size:9px;letter-spacing:.22em;color:var(--muted-2);text-transform:uppercase;margin-top:3px;font-weight:600}
+
+.sb-meta{margin:18px 20px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.sb-meta .row{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px;font-weight:600}
+.sb-meta .v{font-family:var(--font-serif);font-weight:700;color:var(--text);font-size:18px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:6px}
+.sb-meta .v small{font-size:11px;color:var(--muted);font-family:var(--font-sans);font-weight:500;letter-spacing:0;text-transform:none}
+.sb-meta .bar{height:3px;background:var(--line-2);border-radius:99px;overflow:hidden;margin-top:10px}
+.sb-meta .bar>div{height:100%;width:75%;background:var(--accent);border-radius:99px}
+
+/* Theme switcher */
+.sb-theme{margin:4px 20px 8px;display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:9px}
+.sb-theme button{flex:1;background:none;border:none;color:var(--muted);font-size:11.5px;font-weight:500;padding:6px 4px;border-radius:6px;cursor:pointer;transition:all .15s ease;font-family:var(--font-sans)}
+.sb-theme button:hover{color:var(--text)}
+.sb-theme button.on{background:var(--text);color:var(--bg)}
+
+.sb-nav{padding:8px 16px 32px}
+.sb-grp-label{padding:18px 8px 6px;font-size:10px;color:var(--muted-2);letter-spacing:.2em;text-transform:uppercase;font-weight:600}
+.sb-nav a{display:flex;align-items:center;gap:11px;padding:6px 10px;font-size:13.5px;color:var(--text-2);border-radius:7px;transition:background .15s,color .15s;line-height:1.35;margin:1px 0}
+.sb-nav a:hover{background:var(--surface-2);color:var(--text)}
+.sb-nav a.active{background:var(--surface);color:var(--accent);font-weight:500;box-shadow:var(--shadow-sm)}
+.sb-nav a .n{font-family:var(--font-serif);font-weight:600;color:var(--muted-2);width:20px;flex-shrink:0;font-size:12.5px}
+.sb-nav a.active .n{color:var(--accent)}
+.sb-nav a .t{flex:1}
+
+.sb-foot{margin:16px 24px 8px;padding:16px 0 0;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6}
+.sb-foot strong{color:var(--text-2);font-weight:600;display:block;margin-bottom:2px;font-size:12px}
+
+/* ===== MAIN ===== */
+.main{padding:0 0 120px;min-width:0}
+.container{max-width:720px;margin:0 auto;padding:0 64px}
+
+/* ===== RIGHT RAIL ===== */
+.rail{position:sticky;top:0;height:100vh;overflow-y:auto;padding:40px 24px 40px 0;font-size:12.5px;color:var(--muted)}
+.rail::-webkit-scrollbar{width:3px}
+.rail::-webkit-scrollbar-thumb{background:var(--line-soft);border-radius:2px}
+.rail-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);font-weight:600;margin-bottom:14px}
+.rail a{display:block;padding:4px 0;color:var(--muted);line-height:1.45;transition:color .15s;padding-left:12px;border-left:2px solid transparent;margin-left:-14px}
+.rail a:hover{color:var(--text)}
+.rail a.active{color:var(--accent);border-left-color:var(--accent);font-weight:500}
+.rail a.sub{padding-left:22px;margin-left:-14px;font-size:12px}
+
+/* ===== HERO ===== */
+.hero{padding:96px 0 64px;border-bottom:1px solid var(--line);margin-bottom:72px}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:32px;letter-spacing:.02em;font-weight:400}
+.crumbs .sep{color:var(--muted-2)}
+.crumbs strong{color:var(--text-2);font-weight:500}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;background:var(--accent-soft);color:var(--accent-2);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;border-radius:6px;margin-bottom:28px;border:1px solid var(--accent-line)}
+[data-theme="dark"] .eyebrow{color:var(--accent)}
+.eyebrow::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent)}
+h1.title{font-family:var(--font-serif);font-weight:700;font-size:54px;line-height:1.08;letter-spacing:-.025em;color:var(--text);margin:0 0 24px}
+h1.title em{font-style:italic;color:var(--accent);font-weight:700}
+.subtitle{font-family:var(--font-serif);font-weight:400;font-size:21px;line-height:1.55;color:var(--text-2);max-width:620px;letter-spacing:-.005em;margin:0 0 36px}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:0}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;background:var(--surface);border:1px solid var(--line);border-radius:7px;font-size:12px;color:var(--text-2);font-weight:400;transition:border-color .15s,color .15s}
+.chip:hover{border-color:var(--line-soft);color:var(--text)}
+.chip svg{width:11px;height:11px;color:var(--muted)}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:56px;padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.hero-stats .stat{padding:0 24px;border-left:1px solid var(--line-2)}
+.hero-stats .stat:first-child{border-left:none;padding-left:0}
+.hero-stats .stat .v{font-family:var(--font-serif);font-weight:700;font-size:32px;color:var(--text);line-height:1;letter-spacing:-.025em}
+.hero-stats .stat .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:8px;font-weight:500}
+
+/* ===== SECTIONS ===== */
+section{margin:80px 0;scroll-margin-top:32px}
+h2.chap{font-family:var(--font-serif);font-weight:700;font-size:36px;color:var(--text);letter-spacing:-.02em;line-height:1.2;margin:0 0 16px;display:flex;align-items:baseline;gap:14px}
+h2.chap .num{font-family:var(--font-serif);font-weight:600;font-size:15px;color:var(--accent);letter-spacing:.02em}
+h2.chap .hash{color:var(--line);font-weight:400;font-size:28px;margin-right:-4px;user-select:none}
+.chap-lead{font-size:17.5px;color:var(--text-2);line-height:1.7;margin:0 0 32px;max-width:680px;font-weight:400}
+h3{font-family:var(--font-serif);font-weight:600;font-size:23px;color:var(--text);letter-spacing:-.012em;line-height:1.35;margin:52px 0 16px}
+h3::before{content:"";display:inline-block;width:3px;height:16px;background:var(--accent);border-radius:1.5px;margin-right:11px;vertical-align:-2px}
+h4{font-family:var(--font-sans);font-weight:600;font-size:13px;color:var(--text);margin:32px 0 12px;letter-spacing:.06em;text-transform:uppercase}
+p{margin:0 0 20px}
+p strong,li strong{color:var(--text);font-weight:600}
+.lead{font-size:19px;line-height:1.7;color:var(--text-2);font-family:var(--font-serif);font-weight:400;margin-bottom:32px}
+.lead strong{color:var(--text);font-weight:600;font-family:var(--font-sans)}
+
+/* — Lists — */
+ul,ol{padding-left:24px;margin:0 0 20px}
+ul li,ol li{margin-bottom:8px;line-height:1.75}
+ul li::marker{color:var(--accent)}
+ol li::marker{color:var(--accent);font-weight:600}
+
+/* — Inline code — */
+p code,li code,td code{font-size:13.5px;background:var(--surface-2);border:1px solid var(--line);padding:1.5px 6px;border-radius:5px;color:var(--text);font-weight:500}
+
+/* — Code block — */
+.code-block{margin:24px 0 28px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.code-label{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--code-surface);border-bottom:1px solid rgba(255,255,255,.06)}
+.code-label .dots{display:flex;gap:6px}
+.code-label .dots i{width:10px;height:10px;border-radius:50%;display:block}
+.code-label .dots i:nth-child(1){background:#FF5F56}
+.code-label .dots i:nth-child(2){background:#FFBD2E}
+.code-label .dots i:nth-child(3){background:#27C93F}
+.code-label .name{font-family:var(--font-mono);font-size:11px;color:#8B92A5;font-weight:500}
+.code-copy{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#8B92A5;font-size:11px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;transition:all .15s;font-family:var(--font-sans);display:inline-flex;align-items:center;gap:5px}
+.code-copy:hover{background:rgba(255,255,255,.1);color:#E4E7EE}
+.code-copy.copied{background:rgba(39,201,63,.16);color:#5AE67A;border-color:rgba(39,201,63,.3)}
+pre{margin:0;padding:18px 20px;background:var(--code-bg);color:var(--code-text);overflow-x:auto;font-size:13.5px;line-height:1.75}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+.c-kw{color:var(--code-key)}
+.c-str{color:var(--code-str)}
+.c-num{color:var(--code-num)}
+.c-com{color:var(--code-comment);font-style:italic}
+.c-fn{color:var(--code-fn)}
+
+/* — Callouts (克制,统一结构) — */
+.callout{margin:24px 0;padding:14px 16px 14px 14px;border-radius:var(--r);border:1px solid;display:flex;gap:13px;align-items:flex-start;line-height:1.7;font-size:14.5px}
+.callout .icon{flex-shrink:0;width:18px;height:18px;margin-top:2px;display:grid;place-items:center}
+.callout .icon svg{width:18px;height:18px}
+.callout .label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:4px}
+.callout .body{flex:1;color:var(--text-2)}
+.callout .body p:last-child{margin-bottom:0}
+.callout.tip{background:var(--green-soft);border-color:var(--green-line)}
+.callout.tip .icon{color:var(--green)}
+.callout.tip .label{color:var(--green)}
+.callout.pitfall{background:var(--accent-soft);border-color:var(--accent-line)}
+.callout.pitfall .icon{color:var(--accent)}
+.callout.pitfall .label{color:var(--accent-2)}
+[data-theme="dark"] .callout.pitfall .label{color:var(--accent)}
+.callout.best{background:var(--blue-soft);border-color:var(--blue-line)}
+.callout.best .icon{color:var(--blue)}
+.callout.best .label{color:var(--blue)}
+.callout.info{background:var(--slate-soft);border-color:var(--slate-line)}
+.callout.info .icon{color:var(--slate)}
+.callout.info .label{color:var(--slate)}
+.callout.warn{background:var(--amber-soft);border-color:var(--amber-line)}
+.callout.warn .icon{color:var(--amber)}
+.callout.warn .label{color:var(--amber)}
+
+/* — Tables — */
+.tbl-wrap{margin:24px 0;overflow:hidden;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{background:var(--bg-2);color:var(--text);text-align:left;padding:12px 16px;font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+tbody td{padding:14px 16px;border-bottom:1px solid var(--line-2);color:var(--text-2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--surface-2)}
+th:first-child,td:first-child{padding-left:20px}
+th:last-child,td:last-child{padding-right:20px}
+td strong{color:var(--text);font-weight:600}
+
+/* — Diagram — */
+.diagram{margin:32px 0;padding:32px 28px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow-x:auto}
+.diagram .dlabel{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.diagram .dlabel::before{content:"";width:14px;height:2px;background:var(--accent);border-radius:1px}
+
+/* — Report card — */
+.report-card{margin:28px 0;padding:28px 30px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.report-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.report-card h4{margin-top:0;color:var(--accent);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+[data-theme="dark"] .report-card h4{color:var(--accent)}
+.report-card .headline{font-family:var(--font-serif);font-size:22px;font-weight:600;color:var(--text);margin:0 0 16px;line-height:1.35;letter-spacing:-.01em}
+.report-card ul{margin:10px 0 16px}
+.report-card .rec{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--r);padding:15px 17px;margin-top:16px}
+.report-card .rec .l{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2);margin-bottom:10px}
+[data-theme="dark"] .report-card .rec .l{color:var(--accent)}
+.report-card .rec ol{margin:0;padding-left:22px}
+.report-card .rec ol li{font-size:14px}
+
+/* — Definition list — */
+.dl{display:grid;grid-template-columns:160px 1fr;gap:10px 20px;margin:20px 0;font-size:14.5px}
+.dl dt{color:var(--text);font-weight:600}
+.dl dd{margin:0;color:var(--text-2)}
+
+/* — Phase strip — */
+.phases{margin:28px 0;display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 8px;text-align:center;position:relative}
+.phase .n{width:26px;height:26px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:12px;margin:0 auto 9px;font-family:var(--font-serif)}
+.phase .t{font-size:11.5px;color:var(--text);font-weight:500;line-height:1.3}
+.phase::after{content:"";position:absolute;right:-9px;top:34px;width:10px;height:1px;background:var(--line);z-index:1}
+.phase:last-child::after{display:none}
+
+/* — KPI tiles — */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:500;margin-bottom:10px}
+.kpi .v{font-family:var(--font-serif);font-weight:700;font-size:26px;color:var(--text);line-height:1;letter-spacing:-.02em}
+.kpi .d{font-size:12px;margin-top:8px;font-weight:500}
+.kpi .d.up{color:var(--green)}
+.kpi .d.down{color:var(--accent)}
+
+/* — Checklist — */
+.checklist{margin:24px 0;padding:26px 30px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.checklist h4{margin-top:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+[data-theme="dark"] .checklist h4{color:var(--accent)}
+.checklist ul{list-style:none;padding:0;margin:0}
+.checklist li{display:flex;align-items:flex-start;gap:11px;padding:10px 0;font-size:14.5px;color:var(--text-2);border-bottom:1px solid var(--line-2)}
+.checklist li:last-child{border-bottom:none}
+.checklist li::before{content:"✓";flex-shrink:0;width:16px;height:16px;border-radius:4px;background:var(--green-soft);color:var(--green);font-weight:700;font-size:10px;display:grid;place-items:center;margin-top:3px}
+.checklist li b{color:var(--text);font-weight:600}
+
+/* — Command grid — */
+.cmd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:20px 0}
+.cmd{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-family:var(--font-mono);font-size:12.5px;color:var(--text);font-weight:400;transition:border-color .15s}
+.cmd:hover{border-color:var(--accent-line)}
+.cmd::before{content:"$";color:var(--muted-2);font-weight:500;flex-shrink:0}
+
+/* — Closing strip — */
+.closing{margin-top:72px;padding:44px 40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.closing::after{content:"🦞";position:absolute;right:36px;bottom:24px;font-size:80px;opacity:.08;transform:rotate(-10deg);pointer-events:none}
+.closing h3{color:var(--text);margin-top:0;font-size:26px;font-family:var(--font-serif);font-weight:700}
+.closing h3::before{display:none}
+.closing p{color:var(--text-2);margin-bottom:0;position:relative;z-index:1}
+.closing strong{color:var(--accent)}
+
+/* — Footer — */
+.foot{margin-top:64px;padding-top:32px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.foot strong{color:var(--text-2);font-weight:500}
+
+/* — Back to top — */
+.totop{position:fixed;right:28px;bottom:28px;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--text);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s,border-color .15s;z-index:150}
+.totop.show{opacity:1;pointer-events:auto}
+.totop:hover{transform:translateY(-2px);border-color:var(--accent);color:var(--accent)}
+.totop svg{width:16px;height:16px}
+
+/* — Responsive — */
+@media (max-width:1180px){
+  .shell{grid-template-columns:248px minmax(0,1fr)}
+  .rail{display:none}
+  .container{padding:0 48px}
+}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:relative;height:auto}
+  .container{padding:0 24px}
+  h1.title{font-size:38px}
+  .hero{padding:64px 0 40px}
+  .hero-stats{grid-template-columns:repeat(2,1fr);gap:20px}
+  .hero-stats .stat{border-left:none;padding:0}
+  .phases{grid-template-columns:repeat(2,1fr)}
+  .phase::after{display:none}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .cmd-grid{grid-template-columns:1fr}
+  h2.chap{font-size:30px}
+  .dl{grid-template-columns:1fr}
+  .totop{right:16px;bottom:16px}
+}
+
+@media print{
+  .sidebar,.rail,.progress,.totop{display:none}
+  .shell{display:block}
+  .container{max-width:100%;padding:0}
+  .callout{break-inside:avoid}
+  section{break-inside:avoid}
+  body{background:#fff;color:#000}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="logo">
+        <div class="d">🦞</div>
+        <div>
+          <div class="tt">Open<em>Claw</em> 龙虾训练手册</div>
+          <div class="en">标准化流程 · v1.0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-meta">
+      <div class="row"><span>里程碑</span><span>6 / 6</span></div>
+      <div class="v">生产<small>就绪</small></div>
+      <div class="bar"><div></div></div>
+    </div>
+
+    <div class="sb-theme" role="group" aria-label="主题切换">
+        <button data-theme="light" title="浅色">浅色</button>
+        <button data-theme="dark" title="深色">深色</button>
+        <button data-theme="system" title="跟随系统">自动</button>
+      </div>
+
+    <nav class="sb-nav" id="toc">
+      <div class="sb-grp-label">总览</div>
+      <a href="#intro"><span class="n">00</span><span class="t">简介</span></a>
+
+      <div class="sb-grp-label">安装配置</div>
+      <a href="#ch1"><span class="n">01</span><span class="t">启动前清单</span></a>
+      <a href="#ch2"><span class="n">02</span><span class="t">安装与配置</span></a>
+      <a href="#ch3"><span class="n">03</span><span class="t">飞书与 Telegram</span></a>
+
+      <div class="sb-grp-label">闭环任务</div>
+      <a href="#ch4"><span class="n">04</span><span class="t">龙虾任务</span></a>
+      <a href="#ch5"><span class="n">05</span><span class="t">财务/CRM/ERP</span></a>
+      <a href="#ch6"><span class="n">06</span><span class="t">日常流水线</span></a>
+
+      <div class="sb-grp-label">分析能力</div>
+      <a href="#ch7"><span class="n">07</span><span class="t">看板</span></a>
+      <a href="#ch8"><span class="n">08</span><span class="t">偏差告警</span></a>
+      <a href="#ch9"><span class="n">09</span><span class="t">销售预测</span></a>
+      <a href="#ch10"><span class="n">10</span><span class="t">智能报告</span></a>
+      <a href="#ch11"><span class="n">11</span><span class="t">自然语言</span></a>
+
+      <div class="sb-grp-label">速查</div>
+      <a href="#summary"><span class="n">12</span><span class="t">速查表</span></a>
+      <a href="#appendix"><span class="n">A</span><span class="t">上线前清单</span></a>
+    </nav>
+
+    <div class="sb-foot">
+      <strong>维护方</strong>
+      OpenClaw 现场工程团队 · 最后更新 2026-06-29
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="container">
+
+      <!-- HERO -->
+      <header class="hero">
+        <div class="crumbs">
+          <span>OpenClaw</span><span class="sep">/</span>
+          <span>龙虾工坊</span><span class="sep">/</span>
+          <strong>流程手册</strong>
+        </div>
+        <div class="eyebrow">标准化流程手册 · 第 1.0 版</div>
+        <h1 class="title">训练一只龙虾。<em>让数据闭环运转。</em><br>从安装配置,到每日自动分析。</h1>
+        <p class="subtitle">训练师实战指南:把 OpenClaw 的智能体打造成靠谱的运营分析师,能对接财务、CRM 与 ERP 系统,每天早晨用自然语言汇报战况。</p>
+
+        <div class="meta-row">
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 约 25 分钟阅读</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h10"/></svg> 12 章</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg> 端到端验证</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg> 技术栈无关</span>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat"><div class="v">6</div><div class="l">里程碑</div></div>
+          <div class="stat"><div class="v">7</div><div class="l">日常阶段</div></div>
+          <div class="stat"><div class="v">4</div><div class="l">核心 KPI</div></div>
+          <div class="stat"><div class="v">12</div><div class="l">关键命令</div></div>
+        </div>
+      </header>
+
+      <!-- INTRODUCTION -->
+      <section id="intro">
+        <h2 class="chap"><span class="hash">#</span><span class="num">00</span><span>简介</span></h2>
+
+        <p class="lead"><strong>龙虾训练</strong>是 OpenClaw 把 AI 智能体打造成靠谱运营分析师的方法论。每一只"龙虾"都会被赋予明确的职责、数据边界、运行节奏与行为人格。它不是聊天机器人,而是数字员工——按时醒来,核对账目,生成看板,推送早报,然后回去休眠。</p>
+
+        <p>从零到上线要走过 <strong>六个里程碑</strong>:环境就绪 → 工具配置 → 聊天通道 → 闭环任务 → 系统对接 → 分析大脑。六步走完,即可投产;漏掉任何一步,日后就要天天救火。</p>
+
+        <div class="callout info">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+          <div class="body">
+            <span class="label">本手册适用对象</span>
+            <p><strong>开发者与分析师</strong>:负责龙虾的日常训练。<strong>技术负责人</strong>:评审系统集成方案。<strong>业务方</strong>:想了解一只训练有素的生产龙虾到底能做什么。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 1 ============ -->
+      <section id="ch1">
+        <h2 class="chap"><span class="hash">#</span><span class="num">01</span><span>启动前清单</span></h2>
+        <p class="chap-lead">动手安装之前,请先核对下表。绝大多数生产事故的根源,都出在跳过了这一步。</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>项目</th><th>最低要求</th><th>推荐配置</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>操作系统</strong></td><td>macOS 12+、Ubuntu 20.04+、Windows 11 + WSL2</td><td>Ubuntu 22.04 LTS</td></tr>
+              <tr><td><strong>CPU / 内存 / 磁盘</strong></td><td>4 核 · 8 GB · 20 GB SSD</td><td>8 核 · 16 GB · 50 GB SSD</td></tr>
+              <tr><td><strong>网络</strong></td><td>可对外 HTTPS 访问 OpenClaw、飞书/Telegram 及业务系统</td><td>同上,另配静态出口 IP</td></tr>
+              <tr><td><strong>账号</strong></td><td>OpenClaw 工作区、飞书管理员或 Telegram bot token,以及财务/CRM/ERP 的只读凭据</td><td>为龙虾新建独立服务账号,并开启审计日志</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 先用只读账号</span>
+            <p>所有系统一律从<strong>只读凭据</strong>开始,等端到端行为验证通过之后,再逐个开放写权限。这一条规矩能挡掉 80% 的尴尬生产事故。</p>
+          </div>
+        </div>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— 共享管理员账号</span>
+            <p>绝对不要把任何同事的个人管理员密码直接给龙虾。务必使用<strong>独立的服务账号</strong>,否则每一条审计日志看起来都像你 CFO 凌晨三点亲自跑 SQL。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 2 ============ -->
+      <section id="ch2">
+        <h2 class="chap"><span class="hash">#</span><span class="num">02</span><span>下载、安装与配置</span></h2>
+        <p class="chap-lead">龙虾技术栈自下而上分四层,请按顺序安装,后一层依赖前一层。</p>
+
+        <h3>2.1 — 运行时</h3>
+        <p>先把运行时装在一台主机上,它就是你的"控制面"——负责调度、监控和派遣龙虾。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">macOS · Linux</div></div>
+<pre><code>curl -fsSL https://get.openclaw.dev | sh
+openclaw doctor   <span class="c-com"># 12 项健康检查</span></code></pre></div>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">Windows · PowerShell</div></div>
+<pre><code>iwr https://get.openclaw.dev/install.ps1 -useb | iex
+openclaw doctor</code></pre></div>
+
+        <p><code>openclaw doctor</code> 是本手册里最关键的一条命令。任何一行返回红色,就先解决那一行。它会依次检查 Node、Python、磁盘、网络、时钟偏差,以及对 OpenClaw 云端的连通性冒烟测试。</p>
+
+        <h3>2.2 — 大模型配置</h3>
+        <p>龙虾的"大脑"是大模型。选定供应商后,务必在配置中<strong>锁死模型版本</strong>,这样多次运行的行为才稳定可复现。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">~/.openclaw/config.yaml</div></div>
+<pre><code><span class="c-kw">llm</span>:
+  <span class="c-kw">provider</span>: <span class="c-str">openai</span>
+  <span class="c-kw">model</span>: <span class="c-str">gpt-4o-2024-08-06</span>
+  <span class="c-kw">temperature</span>: <span class="c-num">0.2</span>
+  <span class="c-kw">max_tokens</span>: <span class="c-num">4096</span></code></pre></div>
+
+        <div class="callout tip">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 锁死版本</span>
+            <p>版本号、模型名、温度参数,全部都要锁。训练时使用 <code>gpt-4o-2024-08-06</code> 的龙虾,一旦该模型 id 退役,行为立刻漂移。要锁<strong>快照</strong>,不要锁别名。</p>
+          </div>
+        </div>
+
+        <h3>2.3 — 连接器</h3>
+        <p>按需安装连接器,缺什么装什么。凭据统一存进操作系统的钥匙串——绝不写入明文 YAML。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw connector add finance --type=kingdee
+openclaw connector add crm     --type=salesforce
+openclaw connector add erp     --type=sap</code></pre></div>
+
+        <h3>2.4 — 调度器</h3>
+        <p>龙虾不知疲倦,但贵在守时。调度器是一个轻量的 cron 风格执行器,按你指定的时间把龙虾叫醒。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw scheduler <span class="c-kw">enable</span>
+openclaw scheduler add daily-morning <span class="c-str">"0 8 * * 1-5"</span> report.daily
+openclaw scheduler add weekly-board  <span class="c-str">"0 9 * * 1"</span>   board.refresh
+openclaw scheduler add hourly-watch  <span class="c-str">"0 * * * *"</span>   alerts.sweep</code></pre></div>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— 本地时区 vs. 业务时区</span>
+            <p>调度器按主机的本地时区执行。如果 CFO 在新加坡、服务器在法兰克福,请显式设置时区:<code>openclaw scheduler tz Asia/Singapore</code>。否则龙虾会用昨天的数据向新加坡问好。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 3 ============ -->
+      <section id="ch3">
+        <h2 class="chap"><span class="hash">#</span><span class="num">03</span><span>飞书与 Telegram integration</span></h2>
+        <p class="chap-lead">没法和人对话的龙虾,只是个脚本。选一个聊天通道把它接出来——生产用一个,另一个作备份。</p>
+
+        <h3>3.1 — 飞书</h3>
+        <ol>
+          <li>在飞书管理后台创建一个自建应用,名字取作 <strong>OpenClaw 龙虾</strong>(或自取)。</li>
+          <li>勾选权限范围 <code>im:message</code>、<code>im:message.group_at_msg</code>、<code>im:message.p2p_msg</code>、<code>im:message:send_as_bot</code>。</li>
+          <li>开启<strong>机器人</strong>能力,并复制 <strong>App ID</strong>、<strong>App Secret</strong>、<strong>Encrypt Key</strong> 与 <strong>Verification Token</strong>。</li>
+          <li>在 OpenClaw 中注册机器人:</li>
+        </ol>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw chat add feishu \
+  --app-id=cli_xxxxxxxxxxxxxxxx \
+  --app-secret=xxxxxxxxxxxxxxxxxxxxxxxx \
+  --encrypt-key=xxxxxxxxxxxxxxxxxxxxxxxx \
+  --verification-token=xxxxxxxxxxxxxxxx</code></pre></div>
+
+        <ol start="5">
+          <li>订阅事件 <code>im.message.receive_v1</code>,请求 URL 填 <code>https://&lt;your-host&gt;/webhook/feishu</code>。</li>
+          <li>把机器人加进任意群聊,发送 <code>/lobster hello</code>,收到回复即表示端到端鉴权已通。</li>
+        </ol>
+
+        <h3>3.2 — Telegram</h3>
+        <ol>
+          <li>在 Telegram 里找到 <code>@BotFather</code>,执行 <code>/newbot</code>,取名 <code>OpenClaw 龙虾</code>。</li>
+          <li>复制 <strong>HTTP API token</strong>。</li>
+          <li>注册并设置 webhook:</li>
+        </ol>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw chat add telegram --token=<span class="c-num">123456</span>:ABC-DEF
+
+curl <span class="c-str">"https://api.telegram.org/bot&lt;TOKEN&gt;/setWebhook?url=https://&lt;your-host&gt;/webhook/telegram"</span></code></pre></div>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— Webhook 超时</span>
+            <p>Telegram 会在 <strong>60 秒</strong>后取消请求。耗时的分析任务(预测、深度诊断)必须异步回复——先回执,后端跑完再回结果。只要在命令里加 <code>async: true</code>,运行时会自动处理。</p>
+          </div>
+        </div>
+
+        <div class="callout best">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 一只龙虾一个机器人</span>
+            <p>不要在两只龙虾之间共享同一个 bot token。聊天记录会串,排查"幽灵消息"会浪费一整个下午。一只龙虾,一个机器人,一条独立 webhook,一份独立日志。</p>
+          </div>
+        </div>
+
+        <h3>3.3 — 常用命令</h3>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>命令</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>/status</code></td><td>健康状态、上次运行、下次计划</td></tr>
+              <tr><td><code>/dash revenue</code></td><td>推送收入看板</td></tr>
+              <tr><td><code>/forecast --horizon=90</code></td><td>跑一次 90 天销售预测</td></tr>
+              <tr><td><code>/ask &lt;question&gt;</code></td><td>自然语言查询</td></tr>
+              <tr><td><code>/alert set budget-variance=5%</code></td><td>调整告警阈值</td></tr>
+              <tr><td><code>/run daily</code></td><td>手动触发一次日常任务</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ CH 4 ============ -->
+      <section id="ch4">
+        <h2 class="chap"><span class="hash">#</span><span class="num">04</span><span>闭环龙虾任务</span></h2>
+        <p class="chap-lead">"任务"是一段端到端的固定流程,可手动触发,也可定时调度。一只生产级龙虾通常持有三套任务:<strong>日常</strong>、<strong>每周</strong>、<strong>临时</strong>。其中日常任务是它的"心跳"。</p>
+
+        <h3>日常任务的七个阶段</h3>
+        <p>每只生产级龙虾的日常运行,都按以下七个阶段顺序执行:</p>
+
+        <div class="phases">
+          <div class="phase"><div class="n">1</div><div class="t">唤醒 &amp; 阅读</div></div>
+          <div class="phase"><div class="n">2</div><div class="t">Extract</div></div>
+          <div class="phase"><div class="n">3</div><div class="t">Clean</div></div>
+          <div class="phase"><div class="n">4</div><div class="t">Aggregate</div></div>
+          <div class="phase"><div class="n">5</div><div class="t">Analyze</div></div>
+          <div class="phase"><div class="n">6</div><div class="t">Diagnose</div></div>
+          <div class="phase"><div class="n">7</div><div class="t">Report</div></div>
+        </div>
+
+        <p>夜间唤醒并阅读告警 → 从财务/CRM/ERP 抽取增量数据 → 清洗对账 → 聚合成日粒度表(每天每客户每商品一行)→ 刷新 KPI、同环比、偏差、预测 → 对所有波动超 5% 的指标进行诊断 → 推送早报卡片。这七个阶段<strong>缺一不可</strong>,这正是龙虾训练的核心要义。</p>
+
+        <!-- Architecture SVG -->
+        <div class="diagram">
+          <div class="dlabel">闭环架构</div>
+<svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#C1121F"/>
+    </marker>
+    <linearGradient id="loop" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C1121F"/>
+      <stop offset=".5" stop-color="#E8730C"/>
+      <stop offset="1" stop-color="#C68A2B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sources -->
+  <g font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#0E1A2B">
+    <rect x="20" y="40" width="120" height="42" rx="8" fill="#fff" stroke="#E6DCC6"/>
+    <text x="80" y="60" text-anchor="middle">财务</text>
+    <text x="80" y="74" text-anchor="middle" fill="#6B7691" font-weight="500" font-size="9.5">总账 · 应收/应付 · 预算</text>
+
+    <rect x="20" y="138" width="120" height="42" rx="8" fill="#fff" stroke="#E6DCC6"/>
+    <text x="80" y="158" text-anchor="middle">CRM</text>
+    <text x="80" y="172" text-anchor="middle" fill="#6B7691" font-weight="500" font-size="9.5">商机 · 客户</text>
+
+    <rect x="20" y="236" width="120" height="42" rx="8" fill="#fff" stroke="#E6DCC6"/>
+    <text x="80" y="256" text-anchor="middle">ERP</text>
+    <text x="80" y="270" text-anchor="middle" fill="#6B7691" font-weight="500" font-size="9.5">orders · inventory</text>
+  </g>
+
+  <!-- Arrows from sources to center -->
+  <g stroke="#8C97AD" stroke-width="1.5" fill="none" marker-end="url(#arr)">
+    <path d="M140 61 L 230 130"/>
+    <path d="M140 159 L 230 160"/>
+    <path d="M140 257 L 230 190"/>
+  </g>
+
+  <!-- Center: 龙虾 -->
+  <rect x="240" y="100" width="180" height="120" rx="14" fill="#0E1A2B"/>
+  <text x="330" y="138" text-anchor="middle" font-family="Fraunces, serif" font-size="20" font-weight="800" fill="#fff">🦞 龙虾</text>
+  <text x="330" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#aeb9cd">7 阶段日常任务</text>
+  <text x="330" y="178" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#7a8aa5">抽取 · 清洗 · 分析 · 汇报</text>
+  <rect x="252" y="190" width="156" height="6" rx="3" fill="#1f3350"/>
+  <rect x="252" y="190" width="100" height="6" rx="3" fill="url(#loop)"/>
+
+  <!-- Arrows from center to data lake -->
+  <g stroke="#8C97AD" stroke-width="1.5" fill="none" marker-end="url(#arr)">
+    <path d="M420 130 L 510 100"/>
+    <path d="M420 160 L 510 160"/>
+    <path d="M420 190 L 510 220"/>
+  </g>
+
+  <!-- Right: outputs -->
+  <g font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#0E1A2B">
+    <rect x="520" y="80" width="180" height="40" rx="8" fill="#FDECEC" stroke="#C1121F" stroke-opacity=".35"/>
+    <text x="610" y="98" text-anchor="middle">看板</text>
+    <text x="610" y="111" text-anchor="middle" fill="#6B7691" font-weight="500" font-size="9.5">收入 · 成本 · 利润 · 偏差</text>
+
+    <rect x="520" y="140" width="180" height="40" rx="8" fill="#FFF4DC" stroke="#C68A2B" stroke-opacity=".35"/>
+    <text x="610" y="158" text-anchor="middle">告警 &amp; 预测</text>
+    <text x="610" y="171" text-anchor="middle" fill="#6B7691" font-weight="500" font-size="9.5">5% 阈值 · 90 天预测</text>
+
+    <rect x="520" y="200" width="180" height="40" rx="8" fill="#EAF1FA" stroke="#2563A6" stroke-opacity=".35"/>
+    <text x="610" y="218" text-anchor="middle">诊断报告</text>
+    <text x="610" y="231" text-anchor="middle" fill="#6B7691" font-weight="500" font-size="9.5">结论 + 行动建议</text>
+  </g>
+
+  <!-- Chat surface loop -->
+  <g stroke="url(#loop)" stroke-width="2" fill="none" stroke-dasharray="5 4" marker-end="url(#arr)">
+    <path d="M610 240 Q 660 290 380 295 Q 130 295 80 80"/>
+  </g>
+  <text x="380" y="312" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#C1121F">飞书 / Telegram 反馈回路</text>
+</svg>
+        </div>
+
+        <div class="callout tip">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 把每个阶段当作一个单元测试</span>
+            <p>每个阶段都要做到<strong>幂等</strong>且可独立重跑。早上 8:03 出了岔子,你应该可以只重跑第 4 阶段,不必重新从财务系统拉数。运行时支持 <code>openclaw task run daily --from-phase=4</code>。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 5 ============ -->
+      <section id="ch5">
+        <h2 class="chap"><span class="hash">#</span><span class="num">05</span><span>Connecting 财务, CRM &amp; ERP</span></h2>
+        <p class="chap-lead">这三套系统是龙虾干活的"原料来源"。每套系统对应一个独立连接器,各自配备最小权限。</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>系统</th><th>读取</th><th>回写</th></tr></thead>
+            <tbody>
+              <tr><td><strong>财务</strong><br><span style="color:var(--muted);font-size:12.5px">Kingdee · Yonyou · NetSuite</span></td><td>GL, AR/AP, cost centers, budget vs. actuals</td><td>异常标注(可选)</td></tr>
+              <tr><td><strong>CRM</strong><br><span style="color:var(--muted);font-size:12.5px">Salesforce · HubSpot</span></td><td>客户、商机、漏斗、输赢单</td><td>线索打分、下一步动作建议</td></tr>
+              <tr><td><strong>ERP</strong><br><span style="color:var(--muted);font-size:12.5px">SAP · Oracle · Dynamics</span></td><td>销售订单、库存、出货、BOM</td><td>预测调整</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw connect finance --type=kingdee   --base-url=https://kd.example.com   --account=lobster-svc
+openclaw connect crm     --type=salesforce --base-url=https://sf.example.com   --account=lobster-svc
+openclaw connect erp     --type=sap        --base-url=https://sap.example.com  --account=lobster-svc</code></pre></div>
+
+        <p>每一套都要跑一次冒烟测试,全绿代表:鉴权通过、表结构已识别、增量同步字段定位成功,且最近一条记录距今 &lt; 24 小时。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw connect <span class="c-kw">test</span> finance
+openclaw connect <span class="c-kw">test</span> crm
+openclaw connect <span class="c-kw">test</span> erp</code></pre></div>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— 表结构漂移</span>
+            <p>业务系统改字段名是常态。周一还跑得好好的龙虾,周二如果 ERP 团队把 <code>net_amount</code> 改成了 <code>net_amt</code>,就会当场罢工。运行时会监测这种漂移,并<strong>自动暂停流水线</strong>;你必须用 <code>openclaw connect approve finance</code> 显式确认新映射才会恢复。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 6 ============ -->
+      <section id="ch6">
+        <h2 class="chap"><span class="hash">#</span><span class="num">06</span><span>日常数据流水线</span></h2>
+        <p class="chap-lead">连接器就绪后,流水线自动接管。每一行数据都会打上 <code>_lobster_run_id</code> 标签,任何数字都能反查到具体是哪一次运行产生的。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw pipeline init \
+  --source=finance,incremental=posted_at,dimensions=account,cost_center \
+  --source=crm,incremental=updated_at \
+  --source=erp,incremental=changed_at \
+  --sink=duckdb   <span class="c-com"># 也可: snowflake | bigquery</span></code></pre></div>
+
+        <p>一次干净跑下来,每天会产出:<code>fact_revenue_daily</code>、<code>fact_cost_daily</code>、<code>fact_orders_daily</code>,以及 <code>dim_product</code>、<code>dim_customer</code>、<code>dim_date</code>。</p>
+
+        <div class="callout best">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 一个粒度,一张表</span>
+            <p>不要在同一张事实表里混日粒度与月粒度。汇总指标应当<strong>即时计算</strong>而非预先存储。数据湖是"月度汇总"唯一存在的地方,所有看板都要从日粒度推算。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 7 ============ -->
+      <section id="ch7">
+        <h2 class="chap"><span class="hash">#</span><span class="num">07</span><span>收入、成本与利润看板</span></h2>
+        <p class="chap-lead">龙虾出厂自带一套默认看板库。每个看板都是单页交互视图,流水线每次跑完都会自动刷新。</p>
+
+        <h3>7.1 — 四个核心 KPI</h3>
+        <p>所有看板都覆盖同一个四件套:<strong>收入</strong>(已确认,扣减退货)、<strong>成本</strong>(全成本口径)、<strong>利润</strong>(毛利 / 贡献毛利 / 净利)和<strong>偏差</strong>(实际 vs. 预算,默认 5% 阈值)。一个 KPI 若没有配套的比较项和阈值,就不算真正的 KPI。</p>
+
+        <div class="kpi-row">
+          <div class="kpi"><div class="l">收入</div><div class="v">¥48.2M</div><div class="d up">▲ 环比 +6.1%</div></div>
+          <div class="kpi"><div class="l">成本</div><div class="v">¥36.9M</div><div class="d up">▲ 环比 +3.2%</div></div>
+          <div class="kpi"><div class="l">利润</div><div class="v">¥11.3M</div><div class="d up">▲ 环比 +18.4%</div></div>
+          <div class="kpi"><div class="l">利润率</div><div class="v">23.4%</div><div class="d up">▲ 提升 0.9 个百分点</div></div>
+        </div>
+
+        <h3>7.2 — 四种对比</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>对比方式</th><th>回答什么问题</th></tr></thead>
+            <tbody>
+              <tr><td><strong>环比(MoM)</strong></td><td>本月比上月强吗?</td></tr>
+              <tr><td><strong>同比(YoY)</strong></td><td>相对去年同期有增长吗?</td></tr>
+              <tr><td><strong>计划 vs. 实际</strong></td><td>在预算内吗?</td></tr>
+              <tr><td><strong>预测 vs. 实际</strong></td><td>预测越来越准了吗?</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>7.3 — 可视化规范</h3>
+        <p>一张图只回答一个问题。龙虾默认模板就是这样:<strong>趋势</strong>用折线图配 30 日滚动均线;<strong>构成</strong>用 100% 堆叠柱或树图;<strong>分布</strong>用箱线图(绝不用饼图);<strong>对比</strong>用排序柱状图;<strong>KPI</strong>用大数字 + 迷你折线 + 涨跌幅标签。</p>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— 饼图</span>
+            <p>7 块的饼图没法看,改用排序柱状图。龙虾默认模板本就禁止饼图——生产看板里如果出现了饼图,一定是有人手贱覆盖了模板,赶紧改回去。</p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 加注释,别堆装饰</span>
+            <p>每张图都要回答一个问题,并配一行图注。比如<em>"收入环比增长 12%,主要来自 A 产品线。"</em>如果需要写一大段才能讲清楚,说明图本身就该重做。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 8 ============ -->
+      <section id="ch8">
+        <h2 class="chap"><span class="hash">#</span><span class="num">08</span><span>预算跟踪与偏差告警</span></h2>
+        <p class="chap-lead">龙虾的偏差引擎会逐格监控预算中的(科目,期间)单元格。默认阈值为 <strong>5%</strong>,超出后按严重度分级告警。</p>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">~/.openclaw/alerts.yaml</div></div>
+<pre><code><span class="c-kw">alerts</span>:
+  - <span class="c-kw">name</span>: budget-variance
+    <span class="c-kw">metric</span>: cost_vs_budget
+    <span class="c-kw">threshold</span>: <span class="c-num">0.05</span>          <span class="c-com"># 5%</span>
+    <span class="c-kw">direction</span>: <span class="c-str">both</span>          <span class="c-com"># 正向或负向偏差</span>
+    <span class="c-kw">severity</span>:
+      <span class="c-kw">info</span>:     [<span class="c-num">0.03</span>, <span class="c-num">0.05</span>)
+      <span class="c-kw">warn</span>:     [<span class="c-num">0.05</span>, <span class="c-num">0.10</span>)
+      <span class="c-kw">critical</span>: [<span class="c-num">0.10</span>, <span class="c-num">inf</span>)
+    <span class="c-kw">route</span>:
+      <span class="c-kw">info</span>:     <span class="c-str">feishu:daily-report</span>
+      <span class="c-kw">warn</span>:     <span class="c-str">feishu:finance-team</span>
+      <span class="c-kw">critical</span>: <span class="c-str">feishu:cfo + telegram:cfo</span></code></pre></div>
+
+        <p>When the daily pipeline runs, the variance check is automatic. If cost drifts 6% over budget in the Shanghai warehouse, the lobster posts an info card to the daily report, DMs the finance team on Feishu, pages the CFO on Telegram and Feishu, and opens a diagnosis thread with the three most likely root causes.</p>
+
+        <div class="callout best">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 告警必须配假设</span>
+            <p>一条孤零零的"偏差 6.2%"是噪音。一条<em>"偏差 6.2%,首要假设:供应商 X 运费上涨 14%"</em>才是可操作的。告警内容里务必带上最可能的假设。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 9 ============ -->
+      <section id="ch9">
+        <h2 class="chap"><span class="hash">#</span><span class="num">09</span><span>销售预测</span></h2>
+        <p class="chap-lead">龙虾出厂自带三套预测模型,以及它们的融合版本。每种模型各有所长,在滚动回测中,融合模型比任何单一模型都更准。</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>模型</th><th>适用场景</th><th>输入</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>趋势 + 季节性</strong><br><span style="color:var(--muted);font-size:12.5px">Holt-Winters</span></td>
+                <td>稳定、长生命周期的老品</td>
+                <td>2 年以上日度历史销量</td>
+              </tr>
+              <tr>
+                <td><strong>Prophet</strong></td>
+                <td>节假日/大促效应明显的商品</td>
+                <td>历史销量 + 节假日日历 + 大促日历</td>
+              </tr>
+              <tr>
+                <td><strong>机器学习融合</strong><br><span style="color:var(--muted);font-size:12.5px">LightGBM</span></td>
+                <td>新品上市、波动较大的 SKU</td>
+                <td>历史 + 价格 + 宏观信号 + 网站流量</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+<div class="code-block"><div class="code-label"><div class="dots"><i></i><i></i><i></i></div><div class="name">shell</div></div>
+<pre><code>openclaw forecast run \
+  --horizon=<span class="c-num">90</span>d \
+  --granularity=daily \
+  --models=holt-winters,prophet,ensemble \
+  --signals=web_traffic,fx_rate,commodity_index</code></pre></div>
+
+        <p>每条预测都会经过滚动起点回测验证。只有当滚动 MAPE 低于该商品历史基线时,预测才会被发布;否则自动回退到更简单的模型,并打上"待人工复核"的标记。</p>
+
+        <div class="callout tip">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 必须引入市场信号</span>
+            <p>只用内部历史的预测,根本扛不住宏观冲击。龙虾默认配置会自动引入汇率、大宗商品指数,以及(可选的)网站流量作为外生变量——在波动 SKU 上,MAPE 通常能改善 8–15%。</p>
+          </div>
+        </div>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— 别轻信第一次预测</span>
+            <p>回测、查残差、再发布。第一次跑出来的预测几乎从来都不是最终版。如果残差暴露出漏掉的日历效应,补上;如果呈现周期切换特征,就缩短训练窗口重训。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 10 ============ -->
+      <section id="ch10">
+        <h2 class="chap"><span class="hash">#</span><span class="num">10</span><span>利润诊断与智能报告</span></h2>
+        <p class="chap-lead">只会吐数字的龙虾是计算器,会给出<em>结论</em>的龙虾才是分析师。差异全在诊断引擎。</p>
+
+        <h3>诊断的四道工序</h3>
+        <p>每发生一次 KPI 波动,龙虾都会跑完这四道工序:</p>
+<ol>
+          <li><strong>拆解</strong>——把波动拆成量、价、结构、成本四个分量。</li>
+          <li><strong>切片定位</strong>——找出是哪个产品、地区、渠道或客户推动了这次波动。</li>
+          <li><strong>生成假设</strong>——基于数据提出 2–4 个合理的根因。</li>
+          <li><strong>证据打分</strong>——按各假设与数据的吻合度排序。</li>
+        </ol>
+
+        <p>诊断的输出是一张报告卡,不是看板。下面是一份真实样例:</p>
+
+        <div class="report-card">
+          <h4>每日报告 · 2026-06-29</h4>
+          <p class="headline">净利润环比增长 8.4%,跑赢预算 1.2 个百分点。</p>
+          <p style="margin-bottom:8px"><strong style="color:var(--text)">变化概要。</strong>收入环比 +6.1%(量 +3.0%,价 +2.1%,结构 +1.0%);成本 +3.2%(其中运费 +14%,是最大单点);利润率 23.4%,提升 0.9 个百分点。</p>
+          <p style="margin-bottom:0"><strong style="color:var(--text)">原因初判。</strong>A 产品线借力一场成功的大促增长 18%;B 产品线因新品上市推迟下滑 4%。</p>
+          <div class="rec">
+            <div class="l">行动建议</div>
+            <ol>
+              <li>重新谈判上海线运费,当前价格比区域中位数高 22%。</li>
+              <li>把 A 产品线的大促玩法复制到 C 产品线(客群重合度较高)。</li>
+              <li>保留 B 产品线的上市预算,Q3 走势会自然恢复。</li>
+            </ol>
+          </div>
+        </div>
+
+        <p>龙虾会先起草好报告,以卡片形式发到飞书/Telegram;经人工审阅或微调后,再发往更广的接收方。</p>
+
+        <div class="callout best">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 报告必须以行动建议收尾</span>
+            <p>没有建议的报告,只是状态播报;有建议的报告,才能推动决策。龙虾已被训练成"绝不以一个数字结尾"——永远以行动建议结尾。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CH 11 ============ -->
+      <section id="ch11">
+        <h2 class="chap"><span class="hash">#</span><span class="num">11</span><span>自然语言查询</span></h2>
+        <p class="chap-lead">数据湖就绪之后,公司里任何人都可以用自然语言向龙虾提问,龙虾会给出精准、可溯源的答复。</p>
+
+        <h3>示例</h3>
+        <div class="report-card" style="padding:18px 22px">
+          <p style="margin:0;font-size:15px"><strong style="color:var(--accent-2)">你:</strong> 上个月哪个产品线利润增长最高?</p>
+          <p style="margin:8px 0 0;font-size:15px"><strong style="color:var(--text)">龙虾:</strong> 是 <strong>A 产品线</strong>。净利润环比增长 22%(¥480 万 → ¥590 万),主要受 Q2 大促推动,销量提升 18%。其中贡献最大的是 SKU A-12,占增量的 32%。</p>
+        </div>
+
+        <h3>背后的工作流</h3>
+        <ol>
+          <li>运行时识别出这是一个查询意图(<code>NLQ</code>)。</li>
+          <li>查询规划器把自然语言转成结构化计划:<code>{metric: profit, dimension: product_line, time: last_month, comparison: mom}</code>。</li>
+          <li>该计划被翻译成 SQL,在数据湖上执行。</li>
+          <li>回答生成器输出一段 2–4 句的自然语言答复,并附数据出处。</li>
+        </ol>
+
+        <p>对于重复问题,龙虾会缓存查询计划。同一道题 100 个人在上午问出来,实际开销只相当于若干次执行,远低于 100 次全新查询。</p>
+
+        <h3>常见查询类型</h3>
+        <p><em>"本季度收入前 5 名的客户"</em>——排名类。 <em>"3 月成本为什么飙升?"</em>——诊断类。 <em>"预测 Q4 销售额"</em>——预测类。 <em>"Acme 公司由谁负责?"</em>——CRM 查询类。 <em>"5 月我们达成计划了吗?"</em>——偏差类。 运行时会自动识别查询意图,并把计划以 SQL 形式执行。</p>
+
+        <div class="callout pitfall">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="body">
+            <span class="label">常见陷阱 —— 时间窗口的歧义</span>
+            <p>"上个月"在月初和月末指代的时间段并不一样。龙虾的默认是<em>最近一个完整自然月</em>。如果你想要别的口径,务必明确说出:<em>"过去 30 天"</em>、<em>"2026 年 5 月"</em>、<em>"财年 5 月"</em>。</p>
+          </div>
+        </div>
+
+        <div class="callout best">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+          <div class="body">
+            <span class="label">最佳实践 —— 沉淀查询库</span>
+            <p>把最常被问到的 20 个问题存为命名查询。前 20 个问题,基本上就是 CFO 每周一早上必问的那批。命名后,响应时间能压到亚秒级,而且有稳定 URL 可以直接分享。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SUMMARY ============ -->
+      <section id="summary">
+        <h2 class="chap"><span class="hash">#</span><span class="num">12</span><span>总结与速查</span></h2>
+        <p class="chap-lead">把全流程浓缩在这一节,建议贴在显示器上方随时对照。</p>
+
+        <h3>六个里程碑清单</h3>
+        <div class="checklist">
+          <ul>
+            <li><b>M1 — 环境。</b>操作系统、内存、磁盘、网络、账号、审计日志。</li>
+            <li><b>M2 — 工具。</b>OpenClaw 运行时、大模型锁版本、连接器装齐、调度器启用。</li>
+            <li><b>M3 — 聊天通道。</b>飞书或 Telegram 机器人建好,webhook 验证通过。</li>
+            <li><b>M4 — 任务。</b>日常闭环任务定义完毕,7 个阶段全部幂等。</li>
+            <li><b>M5 — 系统对接。</b>财务、CRM、ERP 全部连通,冒烟测试全绿。</li>
+            <li><b>M6 — 分析能力。</b>看板上线、告警调参、预测验证、查询库就位。</li>
+          </ul>
+        </div>
+
+        <h3>最常用的 12 条命令</h3>
+        <div class="cmd-grid">
+          <div class="cmd">openclaw doctor</div>
+          <div class="cmd">openclaw connector add &lt;system&gt;</div>
+          <div class="cmd">openclaw connect test &lt;system&gt;</div>
+          <div class="cmd">openclaw pipeline init</div>
+          <div class="cmd">openclaw pipeline run daily</div>
+          <div class="cmd">openclaw scheduler add "0 8 * * 1-5" report.daily</div>
+          <div class="cmd">openclaw forecast run --horizon=90d</div>
+          <div class="cmd">openclaw diagnose profitability</div>
+          <div class="cmd">openclaw alert set budget-variance 5%</div>
+          <div class="cmd">openclaw chat add feishu|telegram</div>
+          <div class="cmd">openclaw ask "&lt;question&gt;"</div>
+          <div class="cmd">openclaw status</div>
+        </div>
+
+        <h3>四个核心 KPI</h3>
+        <p>收入、成本、利润、偏差——铁律:一个 KPI 若没配比较项和阈值,就不算真正的 KPI。</p>
+
+        <h3>唯一铁律</h3>
+        <p>报告永远以行动建议收尾。数字只能描述过去,<strong>建议才能改变未来</strong>。</p>
+      </section>
+
+      <!-- ============ APPENDIX ============ -->
+      <section id="appendix">
+        <h2 class="chap"><span class="hash">#</span><span class="num">A</span><span>上线前检查清单</span></h2>
+        <p class="chap-lead">准备投产的那个早上,逐条过一遍这十项。十条全绿,放心上线。</p>
+
+        <div class="checklist">
+          <ul>
+            <li><code>openclaw doctor</code> 所有项均绿。</li>
+            <li><code>openclaw pipeline run daily</code> 在 15 分钟内成功完成。</li>
+            <li><code>openclaw status</code> 显示下一次计划运行时间在未来。</li>
+            <li>用合成的超预算数据触发,告警能正常发出。</li>
+            <li>每条活跃产品线的滚动 MAPE 都低于基线。</li>
+            <li>一份样例诊断报告已被人工审阅并通过。</li>
+            <li>一道样例自然语言查询能正确返回结果。</li>
+            <li>飞书/Telegram 机器人对 <code>/status</code>、<code>/dash</code>、<code>/ask</code> 均能正确响应。</li>
+            <li>审计日志已成功汇入 SIEM。</li>
+            <li>值班同学已知晓这只龙虾的存在,并掌握 <code>openclaw pause</code> 暂停方法。</li>
+          </ul>
+        </div>
+
+        <div class="closing">
+          <h3>你的龙虾已准备就绪。</h3>
+          <p>当早报在 <strong>08:00 整</strong>准时出现在飞书里,里面包含今日要点、偏差、预测与三条行动建议;人类花两分钟批准而非两小时拼凑——那一刻,你就知道训练成功了。<strong>欢迎来到龙虾工坊。</strong></p>
+        </div>
+
+        <div class="foot">
+          <span><strong>OpenClaw 龙虾训练 —— 标准化流程手册</strong> · 第 1.0 版</span>
+          <span>由 OpenClaw 现场工程团队维护 · 2026-06-29</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============ RIGHT RAIL ============ -->
+  <aside class="rail" id="rail">
+    <div class="rail-label">本页目录</div>
+    <a href="#intro">简介</a>
+    <a href="#ch1" class="sub">01 · 启动前清单</a>
+    <a href="#ch2" class="sub">02 · 安装与配置</a>
+    <a href="#ch3" class="sub">03 · 飞书与 Telegram</a>
+    <a href="#ch4" class="sub">04 · 闭环任务</a>
+    <a href="#ch5" class="sub">05 · 财务/CRM/ERP</a>
+    <a href="#ch6" class="sub">06 · 日常流水线</a>
+    <a href="#ch7" class="sub">07 · 看板</a>
+    <a href="#ch8" class="sub">08 · 偏差告警</a>
+    <a href="#ch9" class="sub">09 · 销售预测</a>
+    <a href="#ch10" class="sub">10 · 智能报告</a>
+    <a href="#ch11" class="sub">11 · 自然语言</a>
+    <a href="#summary" class="sub">12 · 速查表</a>
+    <a href="#appendix" class="sub">A · 上线前</a>
+  </aside>
+
+</div>
+
+<script>
+/* =====================================================================
+   OpenClaw 龙虾训练手册 — 交互层 v2
+   ===================================================================== */
+(function(){
+  'use strict';
+
+  /* ——— Reading progress ——— */
+  const bar = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    if(bar) bar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  /* ——— Theme toggle (light / dark / system) ——— */
+  const root = document.documentElement;
+  const STORAGE_KEY = 'lobster-manual-theme';
+  const toggleBtns = document.querySelectorAll('.sb-theme button');
+
+  function getStored(){ return localStorage.getItem(STORAGE_KEY) || 'system'; }
+  function applyTheme(mode){
+    let theme = mode;
+    if(mode === 'system'){
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    root.setAttribute('data-theme', theme);
+    toggleBtns.forEach(b => b.classList.toggle('on', b.dataset.theme === mode));
+  }
+  applyTheme(getStored());
+  toggleBtns.forEach(b => b.addEventListener('click', () => {
+    const m = b.dataset.theme;
+    localStorage.setItem(STORAGE_KEY, m);
+    applyTheme(m);
+  }));
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if(getStored() === 'system') applyTheme('system');
+  });
+
+  /* ——— Scroll-spy for side TOC + right rail ——— */
+  const sections = [...document.querySelectorAll('section[id]')];
+  const tocLinks = [...document.querySelectorAll('#toc a')];
+  const railLinks = [...document.querySelectorAll('#rail a')];
+  function setActive(){
+    const y = window.scrollY + 140;
+    let current = sections[0] ? sections[0].id : null;
+    for(const s of sections){
+      if(s.offsetTop <= y) current = s.id;
+    }
+    tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+    railLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current));
+  }
+  window.addEventListener('scroll', setActive, {passive:true});
+  setActive();
+
+  /* ——— Smooth scroll with sticky offset ——— */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if(!el) return;
+      e.preventDefault();
+      const top = el.getBoundingClientRect().top + window.scrollY - 20;
+      window.scrollTo({top, behavior:'smooth'});
+      history.replaceState(null,'','#'+id);
+    });
+  });
+
+  /* ——— Scroll reveal (IntersectionObserver) ——— */
+  const revealTargets = document.querySelectorAll('section, .callout, .diagram, .kpi-row, .report-card, .phases, .tbl-wrap, .checklist, .cmd-grid, .closing');
+  revealTargets.forEach(el => el.classList.add('reveal'));
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if(en.isIntersecting){
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        }
+      });
+    }, {threshold:0.08, rootMargin:'0px 0px -40px 0px'});
+    revealTargets.forEach(el => io.observe(el));
+  } else {
+    revealTargets.forEach(el => el.classList.add('in'));
+  }
+
+  /* ——— Copy buttons on code blocks ——— */
+  document.querySelectorAll('pre').forEach(pre => {
+    // Wrap existing pre+label structure if not already wrapped
+    let block = pre.closest('.code-block');
+    if(block) return; // already has copy button
+    const code = pre.querySelector('code') || pre;
+    const btn = document.createElement('button');
+    btn.className = 'code-copy';
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg> 复制';
+    btn.style.position = 'absolute';
+    btn.style.top = '7px';
+    btn.style.right = '12px';
+    btn.style.zIndex = '2';
+    pre.style.position = 'relative';
+    pre.appendChild(btn);
+    btn.addEventListener('click', () => {
+      const text = code.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg> 已复制';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg> 复制';
+        }, 1800);
+      });
+    });
+  });
+
+  /* ——— Back-to-top ——— */
+  const totop = document.getElementById('totop');
+  if(totop){
+    function toggleTop(){
+      if(window.scrollY > 600) totop.classList.add('show');
+      else totop.classList.remove('show');
+    }
+    window.addEventListener('scroll', toggleTop, {passive:true});
+    totop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+    toggleTop();
+  }
+})();
+
+</script>
+
+<button class="totop" id="totop" aria-label="返回顶部" title="返回顶部">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+</body>
+</html>
