@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenClaw 龙虾训练 · 标准化作业手册</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Neubrutalism 设计系统：硬黑边 + 实心硬阴影 + 高饱和撞色 + 无渐变无模糊 ===== */
+:root{
+  --bg:#fef6e4;            /* 米白底 */
+  --bg2:#fff;
+  --ink:#0a0a0a;           /* 纯黑文字 */
+  --ink2:#3a3a3a;
+  --muted:#6b6b6b;
+  --line:#0a0a0a;          /* 硬边框 = 纯黑 */
+  /* 高饱和多巴胺撞色 */
+  --orange:#ff5c1f;        /* 龙虾橙 · 品牌 */
+  --pink:#ff2d77;          /* 热粉 */
+  --blue:#2563eb;          /* 电蓝 */
+  --yellow:#ffd60a;        /* 阳光黄 */
+  --green:#1fb813;         /* 草绿 */
+  --cyan:#00b8d4;
+  /* Neubrutalism 核心 token */
+  --bw:3px;                /* border-width */
+  --bw2:4px;
+  --sh:5px 5px 0 0 #0a0a0a;     /* 实心硬阴影，无模糊 */
+  --sh-lg:8px 8px 0 0 #0a0a0a;
+  --sh-sm:3px 3px 0 0 #0a0a0a;
+  --radius:0px;            /* 锐角，可小圆角 4-8px */
+  --radius2:10px;
+  --font-sans:'DM Sans','PingFang SC','Microsoft YaHei',-apple-system,sans-serif;
+  --font-display:'Space Grotesk','PingFang SC',sans-serif;
+  --font-mono:'Space Mono','SF Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+html{scroll-behavior:smooth}
+h1,h2,h3,h4{text-wrap:balance}
+p,li{text-wrap:pretty}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+
+body{
+  margin:0;color:var(--ink);font-family:var(--font-sans);line-height:1.7;font-size:16px;
+  background:var(--bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(10,10,10,.07) 1px, transparent 0);
+  background-size:22px 22px;   /* 点阵纹理，Neubrutalism 常用 */
+}
+
+a{color:var(--blue);text-decoration:none;font-weight:700}
+a:hover{text-decoration:underline}
+svg.il{width:1.05em;height:1.05em;vertical-align:-.18em;display:inline-flex;margin-right:.3em}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* ===== HERO ===== */
+header.hero{position:relative;padding:64px 22px 56px;overflow:hidden}
+.hero .inner{max-width:920px;position:relative;z-index:2}
+.crumb{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.06em;background:var(--yellow);
+  border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);padding:7px 14px}
+.crumb .pip{width:9px;height:9px;background:var(--ink);border-radius:50%}
+.hero h1{
+  font-family:var(--font-display);font-size:clamp(42px,7.5vw,88px);line-height:.98;margin:24px 0 12px;
+  font-weight:700;letter-spacing:-.03em;color:var(--ink);
+}
+.hero h1 .hi{background:var(--pink);color:var(--bg);padding:0 .12em;box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;display:inline-block;transform:rotate(-1.5deg)}
+.hero .sub{font-size:clamp(16px,2vw,20px);color:var(--ink2);max-width:680px;margin-top:16px;font-weight:500}
+.hero .pills{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.pill{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:700;color:var(--ink);
+  background:var(--bg2);border:var(--bw) solid var(--line);box-shadow:var(--sh);padding:10px 16px}
+.pill:nth-child(1){background:var(--orange)}
+.pill:nth-child(2){background:var(--cyan)}
+.pill:nth-child(3){background:var(--green)}
+.pill:nth-child(4){background:var(--yellow)}
+.pill b{color:var(--ink)}
+.dot{width:11px;height:11px;background:var(--ink);border:2px solid var(--line)}
+.meta{display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin-top:28px;color:var(--muted);font-size:14px;font-weight:500}
+.meta span{display:inline-flex;align-items:center;gap:8px}
+.meta b{color:var(--ink)}
+/* hero 装饰几何 */
+.deco{position:absolute;pointer-events:none}
+.deco.star{right:6%;top:18%;width:90px;height:90px;color:var(--orange);animation:spin 14s linear infinite}
+.deco.blob{right:18%;bottom:8%;width:120px;height:120px;background:var(--blue);border:var(--bw) solid var(--line);border-radius:50%;box-shadow:var(--sh-lg);z-index:1}
+.deco.zig{left:-30px;bottom:-20px;width:160px;color:var(--pink);opacity:.5}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== STICKY TOC ===== */
+nav.toc{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:var(--bw) solid var(--line)}
+nav.toc .scroll{display:flex;gap:8px;overflow-x:auto;padding:12px 22px;max-width:1180px;margin:0 auto;scrollbar-width:none}
+nav.toc .scroll::-webkit-scrollbar{display:none}
+nav.toc a{white-space:nowrap;color:var(--ink);font-family:var(--font-mono);font-size:13px;font-weight:700;
+  padding:8px 14px;border:var(--bw) solid var(--line);background:var(--bg2);
+  transition:transform .12s var(--ease),box-shadow .12s var(--ease);display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+nav.toc a .n{color:var(--pink)}
+nav.toc a:hover{background:var(--yellow);box-shadow:var(--sh-sm);transform:translate(-2px,-2px)}
+nav.toc a:active{transform:translate(0,0);box-shadow:none}
+
+section{padding:60px 0}
+section:not(.last){border-bottom:var(--bw) solid var(--line)}
+.anchor{scroll-margin-top:70px}
+h2.h{font-family:var(--font-display);font-size:clamp(28px,3.8vw,44px);font-weight:700;letter-spacing:-.02em;
+  margin:0 0 12px;display:flex;align-items:center;gap:18px}
+h2.h .num{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--bg);
+  background:var(--ink);width:44px;height:44px;display:grid;place-items:center;border:var(--bw) solid var(--line);flex:none}
+.lead{color:var(--ink2);font-size:17.5px;max-width:820px;margin:0 0 28px;font-weight:500}
+h3{font-family:var(--font-display);font-size:23px;margin:34px 0 14px;color:var(--ink);font-weight:700}
+h4{font-family:var(--font-display);font-size:18px;margin:0 0 8px;color:var(--ink);font-weight:700}
+p{margin:10px 0}
+
+/* ===== 卡片（硬边框 + 硬阴影，hover 被按下）===== */
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:var(--bw) solid var(--line);box-shadow:var(--sh);padding:24px;
+  transition:transform .14s var(--ease),box-shadow .14s var(--ease)}
+.card:hover{transform:translate(-3px,-3px);box-shadow:var(--sh-lg)}
+.card:active{transform:translate(1px,1px);box-shadow:var(--sh-sm)}
+.card .ic{width:52px;height:52px;display:grid;place-items:center;border:var(--bw) solid var(--line);margin-bottom:6px;background:var(--yellow)}
+.card .ic svg{width:26px;height:26px}
+.card:nth-child(1) .ic{background:var(--orange)}
+.card:nth-child(2) .ic{background:var(--green);color:#fff}
+.card:nth-child(3) .ic{background:var(--cyan)}
+.card p{color:var(--ink2);font-size:14.5px;margin:6px 0 0;font-weight:500}
+
+/* 阶段条 */
+.phases{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0 32px}
+.phase{flex:1;min-width:200px;background:var(--bg2);border:var(--bw) solid var(--line);box-shadow:var(--sh);padding:18px 20px;transition:transform .14s var(--ease),box-shadow .14s var(--ease)}
+.phase:hover{transform:translate(-3px,-3px);box-shadow:var(--sh-lg)}
+.phase .k{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--bg);background:var(--pink);display:inline-block;padding:2px 9px;border:var(--bw) solid var(--line)}
+.phase .t{font-family:var(--font-display);font-size:17px;font-weight:700;margin:10px 0 4px}
+.phase .d{font-size:13px;color:var(--muted);font-weight:500}
+
+/* 步骤 */
+.step{display:flex;gap:18px;margin:18px 0;padding:22px;background:var(--bg2);border:var(--bw) solid var(--line);box-shadow:var(--sh);transition:transform .14s var(--ease),box-shadow .14s var(--ease)}
+.step:hover{transform:translate(-3px,-3px);box-shadow:var(--sh-lg)}
+.step .sno{flex:none;width:48px;height:48px;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:20px;
+  background:var(--yellow);border:var(--bw) solid var(--line);color:var(--ink);box-shadow:var(--sh-sm)}
+.step:nth-child(odd) .sno{background:var(--orange)}
+.step .body{flex:1;min-width:0}
+.step .body h4{color:var(--ink)}
+.step .body p{color:var(--ink2);font-size:14.5px;font-weight:500}
+
+/* 代码块：黑底硬边 */
+pre{background:var(--ink);border:var(--bw) solid var(--line);box-shadow:var(--sh);border-radius:0;
+  padding:18px 20px;overflow:auto;font-family:var(--font-mono);font-size:13.2px;color:#f5f5f5;line-height:1.65}
+pre .c{color:#888}
+pre .k{color:var(--yellow)}
+pre .s{color:var(--green)}
+code{font-family:var(--font-mono);background:var(--yellow);color:var(--ink);border:2px solid var(--line);
+  padding:1px 7px;font-size:13px;font-weight:700}
+.cmd{display:flex;align-items:center;gap:10px}
+.cmd .pmt{color:var(--green);user-select:none;font-weight:700}
+
+/* callout：硬边框 + 撞色底，无模糊 */
+.callout{display:flex;gap:14px;padding:16px 20px;border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);margin:18px 0;font-size:14.8px;font-weight:500}
+.callout .bi{flex:none;width:30px;height:30px;display:grid;place-items:center;border:var(--bw) solid var(--line)}
+.callout .bi svg{width:18px;height:18px}
+.callout.ok{background:var(--green);color:#fff}
+.callout.ok .bi{background:var(--bg2);color:var(--green)}
+.callout.warn{background:var(--yellow);color:var(--ink)}
+.callout.warn .bi{background:var(--ink);color:var(--yellow)}
+.callout.danger{background:var(--pink);color:#fff}
+.callout.danger .bi{background:var(--bg2);color:var(--pink)}
+.callout.info{background:var(--cyan);color:var(--ink)}
+.callout.info .bi{background:var(--ink);color:var(--cyan)}
+.callout b{color:inherit}
+
+/* 表格：硬边框 */
+.tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;border:var(--bw) solid var(--line);box-shadow:var(--sh);background:var(--bg2);font-weight:500}
+.tbl th,.tbl td{padding:13px 16px;text-align:left;border:2px solid var(--line);vertical-align:top}
+.tbl thead th{background:var(--ink);color:var(--yellow);font-family:var(--font-mono);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+.tbl tbody tr:nth-child(even){background:var(--bg)}
+.tbl tbody tr:hover{background:var(--yellow)}
+.tag{display:inline-block;font-size:12px;padding:3px 10px;font-family:var(--font-mono);font-weight:700;border:2px solid var(--line)}
+.t-must{background:var(--pink);color:#fff}
+.t-rec{background:var(--cyan);color:var(--ink)}
+.t-opt{background:var(--bg);color:var(--ink)}
+
+/* 流程图 */
+.flow{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin:22px 0}
+.flow .node{flex:1;min-width:150px;background:var(--bg2);border:var(--bw) solid var(--line);padding:18px;text-align:center;transition:transform .14s var(--ease)}
+.flow .node:hover{transform:translate(-3px,-3px)}
+.flow .node .e{width:52px;height:52px;display:grid;place-items:center;margin:0 auto;border:var(--bw) solid var(--line);background:var(--yellow)}
+.flow .node .e svg{width:26px;height:26px}
+.flow .node:nth-child(3) .e{background:var(--cyan)}
+.flow .node:nth-child(5) .e{background:var(--green);color:#fff}
+.flow .node:nth-child(7) .e{background:var(--orange)}
+.flow .node .t{font-family:var(--font-display);font-weight:700;font-size:15px;margin-top:10px}
+.flow .node .s{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+.flow .arr{display:grid;place-items:center;color:var(--ink);font-size:26px;padding:0 6px;font-weight:700}
+@media(max-width:760px){.flow .arr{transform:rotate(90deg);padding:8px 0}}
+
+/* ===== 看板（Neubrutalism 版）===== */
+.dash{background:var(--bg2);border:var(--bw2) solid var(--line);box-shadow:var(--sh-lg);padding:24px;margin-top:10px}
+.dash .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.dash .head .t{font-family:var(--font-display);font-weight:700;font-size:20px}
+.dash .head .f{display:flex;gap:8px}
+.seg{font-family:var(--font-mono);font-size:12px;font-weight:700;padding:7px 13px;border:var(--bw) solid var(--line);background:var(--bg2);color:var(--ink);cursor:pointer}
+.seg.on{background:var(--orange);color:var(--bg)}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+@media(max-width:620px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--bg2);border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);padding:16px;transition:transform .14s var(--ease)}
+.kpi:hover{transform:translate(-2px,-2px);box-shadow:var(--sh)}
+.kpi:nth-child(1){background:var(--yellow)}
+.kpi:nth-child(2){background:var(--pink);color:#fff}
+.kpi:nth-child(3){background:var(--green);color:#fff}
+.kpi:nth-child(4){background:var(--cyan)}
+.kpi .lab{font-family:var(--font-mono);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.kpi .val{font-family:var(--font-display);font-size:28px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+.kpi .ch{font-family:var(--font-mono);font-size:12px;font-weight:700;margin-top:4px}
+.up{color:var(--green)} .kpi:nth-child(2) .up,.kpi:nth-child(3) .up{color:#aaffaa}
+.dn{color:var(--pink)} .kpi:nth-child(1) .dn{color:var(--orange)}
+.kpi:nth-child(2) .lab,.kpi:nth-child(3) .lab{color:rgba(255,255,255,.85)}
+.chart{display:flex;align-items:flex-end;gap:10px;height:140px;padding:14px;background:var(--ink);border:var(--bw) solid var(--line)}
+.chart .bar{flex:1;position:relative;min-width:8px;transition:transform .14s var(--ease)}
+.chart .bar.prev{background:#555}
+.chart .bar.curr{background:var(--yellow);border:2px solid var(--bg2)}
+.chart .bar.curr:hover{transform:scaleY(1.05);background:var(--orange)}
+.chart .bar small{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--bg)}
+.chartwrap{margin-bottom:28px}
+.leg{display:flex;gap:18px;font-family:var(--font-mono);font-size:12px;font-weight:700;margin:12px 0 6px}
+.leg i{display:inline-block;width:12px;height:12px;border:2px solid var(--line);margin-right:6px;vertical-align:middle}
+
+/* 告警条 */
+.alert{display:flex;gap:12px;align-items:center;background:var(--yellow);border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);padding:14px 16px;margin:12px 0;font-weight:500}
+.alert.red{background:var(--pink);color:#fff}
+.alert .e{width:32px;height:32px;display:grid;place-items:center;flex:none;border:var(--bw) solid var(--line);background:var(--bg2);color:var(--ink)}
+.alert.red .e{color:var(--pink)}
+.alert .e svg{width:18px;height:18px}
+.alert .m{flex:1;font-size:14.5px}
+.alert .m b{color:inherit}
+.alert .t{font-family:var(--font-mono);font-size:12px;font-weight:700;opacity:.8}
+
+/* 对话 */
+.chat{max-width:580px;margin:16px 0}
+.bubble{max-width:86%;padding:14px 17px;border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);font-size:14.5px;margin:12px 0;line-height:1.65;font-weight:500}
+.bubble.q{background:var(--bg2)}
+.bubble.a{background:var(--orange);color:var(--bg)}
+.bubble.a b,.bubble.a code{color:var(--bg)}
+.bubble.a code{background:var(--ink);color:var(--yellow)}
+.bubble .who{font-family:var(--font-mono);font-size:11px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;opacity:.8}
+
+/* 清单 */
+ul.check{list-style:none;padding:0;margin:14px 0}
+ul.check li{position:relative;padding:11px 0 11px 34px;font-size:14.8px;color:var(--ink2);border-bottom:2px dashed var(--line);font-weight:500}
+ul.check li::before{content:"☐";position:absolute;left:0;top:10px;color:var(--ink);font-size:18px;font-weight:700}
+ul.check li.done{color:var(--muted)}
+ul.check li.done::before{content:"☑";color:var(--green)}
+
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:26px;align-items:start}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+
+/* 前置必读 banner */
+.req{background:var(--yellow);border:var(--bw2) solid var(--line);box-shadow:var(--sh-lg);padding:28px 30px;margin:20px 0}
+.req h4{margin-top:0;font-family:var(--font-display);font-size:20px}
+.req .rd{display:flex;gap:16px;align-items:flex-start;background:var(--bg2);border:var(--bw) solid var(--line);box-shadow:var(--sh-sm);padding:18px;margin:14px 0}
+.req .rd .ico{flex:none;width:48px;height:48px;display:grid;place-items:center;border:var(--bw) solid var(--line);background:var(--orange)}
+.req .rd:nth-child(3) .ico{background:var(--pink)}
+.req .rd .ico svg{width:26px;height:26px}
+.req .rd .meta{margin:6px 0 0}
+
+footer{padding:50px 0 70px;border-top:var(--bw) solid var(--line);background:var(--ink);color:#ccc;font-size:14px;font-weight:500}
+footer .wrap{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-between}
+footer a{color:var(--yellow)}
+footer h4{color:#fff}
+.kbadge{display:inline-block;font-family:var(--font-mono);font-size:11px;padding:3px 9px;font-weight:700;background:var(--yellow);color:var(--ink);border:2px solid var(--bg2)}
+.muted{color:var(--muted)}
+.reveal{opacity:0;transform:translateY(20px);animation:rise .6s var(--ease) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="deco star" viewBox="0 0 100 100" fill="currentColor"><path d="M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z"/></svg>
+  <div class="deco blob"></div>
+  <svg class="deco zig" viewBox="0 0 200 40" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="square"><path d="M0 20 L20 4 L40 36 L60 4 L80 36 L100 4 L120 36 L140 4 L160 36 L180 4 L200 20"/></svg>
+  <div class="wrap"><div class="inner reveal">
+    <span class="crumb"><span class="pip"></span> OpenClaw · 龙虾工坊 · 标准化作业手册</span>
+    <h1>龙虾训练<br><span class="hi">标准化作业手册</span></h1>
+    <p class="sub">从下载安装、工具配置、飞书 / Telegram 接入，到打通财务 / CRM / ERP、每日聚合清洗、生成同比环比看板、预算偏差预警、销售预测、盈利模型诊断，最终交付一份「带结论与建议」的闭环经营分析任务。</p>
+    <div class="pills">
+      <span class="pill"><span class="dot"></span><b>12 虾阵</b> · 5 小队编制</span>
+      <span class="pill"><span class="dot"></span>主角 <b>a02 经营分析师</b> + i01 财务</span>
+      <span class="pill"><span class="dot"></span>闭环任务 · 8 阶段</span>
+      <span class="pill"><span class="dot"></span>Feishu / Telegram 双通道</span>
+    </div>
+    <div class="meta">
+      <span><svg class="il" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>版本 <b>v1.0</b></span>
+      <span><svg class="il" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>适用：开发者 / 分析师 / 利益相关方</span>
+      <span><svg class="il" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>工作目录 <b>~/.openclaw/workspace</b></span>
+    </div>
+  </div></div>
+</header>
+
+<!-- TOC -->
+<nav class="toc"><div class="scroll">
+  <a href="#req"><span class="n">!</span> 前置必读</a>
+  <a href="#overview"><span class="n">0</span> 全景图</a>
+  <a href="#install"><span class="n">1</span> 下载与安装</a>
+  <a href="#config"><span class="n">2</span> 工具配置</a>
+  <a href="#notify"><span class="n">3</span> 飞书 / TG 接入</a>
+  <a href="#connect"><span class="n">4</span> 打通业务系统</a>
+  <a href="#pipeline"><span class="n">5</span> 数据聚合清洗</a>
+  <a href="#dashboard"><span class="n">6</span> 同比环比看板</a>
+  <a href="#budget"><span class="n">7</span> 预算偏差预警</a>
+  <a href="#forecast"><span class="n">8</span> 销售预测</a>
+  <a href="#diagnose"><span class="n">9</span> 盈利诊断</a>
+  <a href="#report"><span class="n">10</span> 分析报告</a>
+  <a href="#nlq"><span class="n">11</span> 自然语言问答</a>
+  <a href="#checklist"><span class="n">12</span> 收尾清单</a>
+</div></nav>
+
+<!-- PREREQUISITE -->
+<section id="req" class="anchor">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">!</span><span>训练前的强制前置阅读</span></h2>
+    <p class="lead">在训练任何一只龙虾之前，<b>必须</b>先读完以下两份文档。它们决定了龙虾如何「理解自己、生成 Markdown、遵循标准」。跳过这一步，后续所有工作都会在人格漂移和格式混乱里打转。</p>
+    <div class="req">
+      <h4>🔒 硬性门禁：未读完不开工</h4>
+      <div class="rd">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/></svg></div>
+        <div>
+          <b>①《硅基生命手册》八卷体系</b>
+          <div class="muted" style="font-size:13.5px;margin-top:2px"><code>references/silicon-life-handbook/</code> · 8 卷 59 篇 · MIT</div>
+          <p style="font-size:14.5px;color:var(--ink2);margin:8px 0 0">帮助龙虾理解 <b>七大生命协议</b>（SOUL / USER / AGENTS / TOOLS / IDENTITY / HEARTBEAT / MEMORY）的写法与原理，从而掌握 <b>Markdown 文档如何生成、为何这么写</b>。重点读：卷二《生命协议》、卷三《系统骨架》、卷四《训练流程》、卷六《治理系统》。</p>
+        </div>
+      </div>
+      <div class="rd">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-2 0-3-2-5-2M12 5c2 0 3-2 5-2"/><path d="M9 8h6l-1 4H10z"/><path d="M10 14h4l-1 5h-2z"/><path d="M9 11c-4 0-6 2-7 5M15 11c4 0 6 2 7 5"/></svg></div>
+        <div>
+          <b>②《蓝血军团·训虾最佳实践手册 v4.0》</b>
+          <div class="muted" style="font-size:13.5px;margin-top:2px"><code>references/蓝血军团-最佳实践手册.md</code> · 架构锚点文件 · 每次唤醒必读</div>
+          <p style="font-size:14.5px;color:var(--ink2);margin:8px 0 0">龙虾工坊的「重启协议锚点」。规定了 12 虾 / 5 小队编制、角色 <b>7 件套</b>标准（README/SOUL/AGENTS/SKILL/HEARTBEAT/MEMORY/EVOLUTION）、Skill 集中存放原则、全局共享单源真理（SHARED/USER.md、SHARED/TOOLS.md）。</p>
+        </div>
+      </div>
+      <div class="callout warn" style="margin-top:16px">
+        <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 17v4M15 17v4"/></svg></span>
+        <div><b>门禁检查</b>：训练前请在龙虾的 <code>AGENTS.md</code>「必读文件」段确认两条引用存在；否则触发 <b>整改单机制</b>（卷六·模块4），不予分配任务卡。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview" class="anchor" style="background:var(--bg)">
+  <div class="wrap">
+    <h2 class="h"><span class="num">0</span><span>全景：一次闭环龙虾任务长什么样</span></h2>
+    <p class="lead">本手册的主角是 <b>a02 经营分析师</b>（大脑小队）与 <b>i01 财务分析</b>（底盘小队）协同完成的一次「每日经营分析闭环」。下面是从环境搭建到交付报告的 8 个阶段，每一步在后文都有可照做的步骤。</p>
+    <div class="phases">
+      <div class="phase"><div class="k">阶段 1–2</div><div class="t">环境就绪</div><div class="d">下载 OpenClaw · 安装 · 配置工具 · 写 7 件套</div></div>
+      <div class="phase"><div class="k">阶段 3</div><div class="t">通知通道</div><div class="d">飞书 / Telegram 接入，异常可推送</div></div>
+      <div class="phase"><div class="k">阶段 4</div><div class="t">系统打通</div><div class="d">财务 / CRM / ERP 数据源连接</div></div>
+      <div class="phase"><div class="k">阶段 5</div><div class="t">数据管线</div><div class="d">每日聚合 · 清洗 · 口径标准化</div></div>
+      <div class="phase"><div class="k">阶段 6–8</div><div class="t">分析与交付</div><div class="d">看板 · 预警 · 预测 · 诊断 · 报告</div></div>
+    </div>
+    <h3>主角虾 & 协同网络</h3>
+    <div class="grid g3">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/></svg></div><h4>a02 经营分析师</h4><p>大脑小队 · 经营罗盘。负责数据采集、洞察提炼、一页纸经营看板、归因分析。本任务主负责。</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg></div><h4>i01 财务分析</h4><p>底盘小队 · 管钱管账。负责收入/成本/利润/现金流核验，预算口径与三张表。</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.7 3.7-2.7 2.7-2-.5a.5.5 0 0 0-.5.8l2 2 2 2a.5.5 0 0 0 .8-.5l-.5-2 2.7-2.7 3.7 3.7a.5.5 0 0 0 .8-.5z"/></svg></div><h4>d01 销售增长</h4><p>增长小队 · 营收数据源（销售额/订单量/转化率/退货率）。</p></div>
+    </div>
+    <div class="callout info"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/></svg></span><div>协同遵循《蓝血军团》A2A 协议：虾间任务交接必须包含 <b>已完成 / 未完成 / 阻塞项 / 下一步</b> 四要素。</div></div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install" class="anchor">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">1</span><span>下载、安装与工作区初始化</span></h2>
+    <p class="lead">OpenClaw 是「生命容器」：Agent 不是 prompt，是独立运行单元（参见八卷·卷三·模块1）。先把容器装好，再谈训练。</p>
+    <h4>1.1 主机要求（来自 SHARED/TOOLS.md）</h4>
+    <table class="tbl"><thead><tr><th>项目</th><th>要求</th></tr></thead><tbody>
+      <tr><td>操作系统</td><td>macOS 15 (Darwin 24) 或 Linux。本手册以 macOS 为准</td></tr>
+      <tr><td>Shell</td><td>zsh（默认即可）</td></tr>
+      <tr><td>运行时</td><td>Node.js 20+ 与 Python 3.11+（财务虾 i01 的 Python 引擎需要）</td></tr>
+      <tr><td>工作目录</td><td><code>~/.openclaw/workspace</code></td></tr>
+    </tbody></table>
+    <h4>1.2 安装 OpenClaw 与初始化工作区</h4>
+    <div class="step"><div class="sno">1</div><div class="body"><h4>安装 CLI</h4><p>通过官方安装脚本拉取 OpenClaw 运行时。</p>
+<pre><span class="c"># 安装 OpenClaw（macOS / Linux）</span>
+<span class="cmd"><span class="pmt">$</span> curl -fsSL https://openclaw.dev/install | bash</span>
+<span class="cmd"><span class="pmt">$</span> openclaw --version   <span class="c"># 确认安装成功</span></span></pre></div></div>
+    <div class="step"><div class="sno">2</div><div class="body"><h4>克隆 / 初始化工作区</h4><p>龙虾工坊采用统一目录结构（见《蓝血军团》第二部分）。把 12 虾、SHARED、references、skills 拉下来。</p>
+<pre><span class="cmd"><span class="pmt">$</span> openclaw workspace init lobster-workshop</span>
+<span class="cmd"><span class="pmt">$</span> cd ~/.openclaw/workspace</span>
+<span class="cmd"><span class="pmt">$</span> openclaw workspace pull    <span class="c"># 拉取 12 虾 7 件套 + 八卷参考</span></span></pre></div></div>
+    <div class="step"><div class="sno">3</div><div class="body"><h4>校验目录骨架</h4><p>初始化后应能看到以下结构，这是《蓝血军团》冻结的 v4.0 架构：</p>
+<pre>workspace/
+├── SHARED/            <span class="c"># 全局共享 · 单源真理（USER.md / TOOLS.md）</span>
+├── 十二虾/            <span class="c"># 12 虾角色定义（每虾 7 件套）</span>
+├── references/        <span class="c"># 只读参考：八卷 + 蓝血军团手册</span>
+│   ├── silicon-life-handbook/
+│   └── 蓝血军团-最佳实践手册.md
+├── skills/            <span class="c"># 共享 Skill 库（集中存放，绝不分散）</span>
+├── knowledge/  memory/  main/</pre></div></div>
+    <div class="callout warn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></span><div><b>常见坑</b>：不要把 Skill 散落到各虾目录里。《蓝血军团》硬约束：所有 Skill 集中在 <code>workspace/skills/</code>，由各虾 <code>SKILL.md</code> 轻量清单「只引用、不承载」，避免 Token 浪费。</div></div>
+  </div>
+</section>
+
+<!-- CONFIG -->
+<section id="config" class="anchor" style="background:var(--bg)">
+  <div class="wrap">
+    <h2 class="h"><span class="num">2</span><span>工具配置与 7 件套初始化</span></h2>
+    <p class="lead">「架构不对，虾养不好。」（《蓝血军团》开篇语）这一步把全局工具配成单源真理，再生成主角虾 a02 的 7 件套。</p>
+    <div class="two">
+      <div>
+        <h4>2.1 全局共享文件（单源真理）</h4>
+        <p style="color:var(--ink2)">所有虾引用同一份，改一处全队生效：</p>
+        <ul class="check">
+          <li><b>SHARED/USER.md</b>：养虾人信息（张伟 / 凌霄 / CEO · Asia/Shanghai · 金字塔式汇报）</li>
+          <li><b>SHARED/TOOLS.md</b>：全局工具与环境配置（主机、路径、通知通道）</li>
+          <li><b>SHARED/CHARTER/</b>：大宪章、组织架构图</li>
+        </ul>
+        <h4>2.2 角色 7 件套（冻结标准）</h4>
+        <p style="color:var(--ink2)">每只虾必须且只能包含以下 7 个文件，符合八卷·卷二最佳实践：</p>
+      </div>
+      <div>
+        <table class="tbl"><thead><tr><th>#</th><th>文件</th><th>作用</th></tr></thead><tbody>
+          <tr><td>1</td><td><code>README.md</code></td><td>角色总览 · 技能矩阵 · 小队定位</td></tr>
+          <tr><td>2</td><td><code>SOUL.md</code></td><td>核心人格 · 进化阶梯 · 永远做/不做</td></tr>
+          <tr><td>3</td><td><code>AGENTS.md</code></td><td><b>必读</b> · 工作流 SOP · 协作网络</td></tr>
+          <tr><td>4</td><td><code>SKILL.md</code></td><td>技能清单（轻量清单 · 只引不载）</td></tr>
+          <tr><td>5</td><td><code>HEARTBEAT.md</code></td><td>心跳节律 · 熔断上报条件</td></tr>
+          <tr><td>6</td><td><code>MEMORY.md</code></td><td>长期记忆 · 项目记录 · 待办</td></tr>
+          <tr><td>7</td><td><code>EVOLUTION.md</code></td><td>OODA · 进化里程碑</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <h4>2.3 一键生成主角虾 a02</h4>
+<pre><span class="cmd"><span class="pmt">$</span> openclaw shrimp new a02 --template business-analyst</span>
+<span class="cmd"><span class="pmt">$</span> openclaw shrimp bind a02 --squad brain</span>   <span class="c"># 挂到大脑小队</span>
+<span class="cmd"><span class="pmt">$</span> openclaw shrimp verify a02</span>             <span class="c"># 7 件套完整性校验</span></pre>
+    <div class="callout ok"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span><div><b>最佳实践</b>：用 <code>openclaw shrimp verify</code> 把 7 件套做成 CI 门禁。<b>硬约束</b>：不得包含 BOOTSTRAP.md / WORKFLOW.md / 独立 HERMES-*.md / IDENTITY.md（IDENTITY 已废弃，并入 SOUL.md）。</div></div>
+    <div class="callout danger"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span><div><b>常见坑</b>：SOUL.md 与 AGENTS.md 内容重叠会让虾「人格漂移」。SOUL 管「我是谁」，AGENTS 管「我怎么干活」，边界要清晰。</div></div>
+  </div>
+</section>
+
+<!-- NOTIFY -->
+<section id="notify" class="anchor">
+  <div class="wrap">
+    <h2 class="h"><span class="num">3</span><span>接入飞书 / Telegram：让龙虾会「喊人」</span></h2>
+    <p class="lead">闭环任务的命脉是「异常能触达人」。经营分析师 a02 的 KPI 之一就是 <b>异常预警及时率 ≥ 90%</b>（异常→预警 ≤ 4h）。下面把两条通知通道接上。</p>
+    <div class="grid g2">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h4>飞书（Feishu）接入</h4><p style="color:var(--ink2);font-size:14.5px;margin-top:8px">适合企业内、正式汇报与群聊协同（12 虾协同频道）。</p>
+        <ol style="color:var(--ink2);font-size:14.5px;padding-left:18px;margin:8px 0">
+          <li>在飞书开放平台创建「自建应用」，获取 <code>App ID</code> / <code>App Secret</code></li>
+          <li>为目标群创建 <b>自定义机器人</b>，拿到 <code>Webhook URL</code></li>
+          <li>申请权限：<code>im:message</code>、<code>im:chat</code></li>
+          <li>写入 <code>SHARED/TOOLS.md</code> 的「网络与通知」段</li>
+        </ol>
+<pre><span class="c"># 配置到全局工具</span>
+<span class="cmd"><span class="pmt">$</span> openclaw channel add feishu \
+    --app-id $FEISHU_APP_ID \
+    --app-secret $FEISHU_APP_SECRET \
+    --webhook $FEISHU_WEBHOOK</span></pre></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.7 3.7-2.7 2.7-2-.5a.5.5 0 0 0-.5.8l2 2 2 2a.5.5 0 0 0 .8-.5l-.5-2 2.7-2.7 3.7 3.7a.5.5 0 0 0 .8-.5z"/></svg></div><h4>Telegram 接入</h4><p style="color:var(--ink2);font-size:14.5px;margin-top:8px">适合移动端即时推送、跨境团队与个人告警。</p>
+        <ol style="color:var(--ink2);font-size:14.5px;padding-left:18px;margin:8px 0">
+          <li>找 <code>@BotFather</code> 创建 Bot，拿到 <code>Bot Token</code></li>
+          <li>把 Bot 拉入群组，获取 <code>chat_id</code></li>
+          <li>写入 <code>SHARED/TOOLS.md</code></li>
+        </ol>
+<pre><span class="cmd"><span class="pmt">$</span> openclaw channel add telegram \
+    --token $TG_BOT_TOKEN \
+    --chat-id $TG_CHAT_ID</span></pre></div>
+    </div>
+    <h4>3.1 路由策略：谁的消息发哪里</h4>
+    <p style="color:var(--ink2)">在 a02 的 <code>HEARTBEAT.md</code> 里定义熔断上报条件与通道映射，遵循八卷·卷二《HEARTBEAT 文档》：</p>
+    <table class="tbl"><thead><tr><th>事件级别</th><th>触发条件</th><th>主通道</th><th>备用通道</th></tr></thead><tbody>
+      <tr><td><span class="tag t-must">P0 紧急</span></td><td>预算偏差 &gt; 5% 且金额 &gt; 阈值 / 利润转负</td><td>飞书群 @CEO</td><td>Telegram</td></tr>
+      <tr><td><span class="tag" style="background:var(--yellow)">P1 警告</span></td><td>单指标环比波动 &gt; 20%</td><td>飞书群</td><td class="muted">无</td></tr>
+      <tr><td><span class="tag t-rec">P2 提示</span></td><td>趋势信号（连续 2 周同向）</td><td>日报摘要</td><td class="muted">无</td></tr>
+    </tbody></table>
+    <div class="callout info"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a7 7 0 0 1 14 0"/><path d="M8.5 13a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="13" r="1"/><path d="M12 13v8"/></svg></span><div><b>实测要点</b>：飞书 Webhook 对单条消息有长度限制，长报告先写文件再发链接；Telegram Bot 在群内默认不读消息，需 <code>/setprivacy</code> 关闭才能接收 @ 提及。</div></div>
+  </div>
+</section>
+
+<!-- CONNECT -->
+<section id="connect" class="anchor" style="background:var(--bg)">
+  <div class="wrap">
+    <h2 class="h"><span class="num">4</span><span>打通核心业务系统：财务 / CRM / ERP</span></h2>
+    <p class="lead">经营分析师的第一信条：「会看三张表的才叫经营分析师，只看一张表的叫会计。」要能看三张表，得先把三套系统的数据源接进来。</p>
+    <div class="flow">
+      <div class="node"><div class="e"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg></div><div class="t">财务系统</div><div class="s">i01 负责 · 收入/成本/利润/现金流</div></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="e"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-2 2a2 2 0 0 1-3-3"/><path d="M13 17l3 3a2 2 0 0 0 3-3V8l-3-3-3 3"/><path d="M9 7l3-3 3 3"/></svg></div><div class="t">CRM</div><div class="s">d01/f01 · 客户/订单/退货/NPS</div></div>
+      <div class="arr">→</div>
+      <div class="node"><div class="e"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M4 20V10l6 4V10l6 4V6l4 3v11"/><path d="M9 20v-4h3v4"/></svg></div><div class="t">ERP</div><div class="s">k01 · 采购/库存/履约时效</div></div>
+      <div class="arr">→</div>
+      <div class="node" style="background:var(--orange)"><div class="e" style="background:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-2 0-3-2-5-2M12 5c2 0 3-2 5-2"/><path d="M9 8h6l-1 4H10z"/><path d="M10 14h4l-1 5h-2z"/></svg></div><div class="t">a02 数据湖</div><div class="s">聚合 · 清洗 · 口径标准化</div></div>
+    </div>
+    <h4>4.1 用 Skill 封装连接器（Work-to-Skill 机制）</h4>
+    <p style="color:var(--ink2)">遵循《蓝血军团》「完成任务→评估→封装」的 Work-to-Skill 机制，把每个系统的连接逻辑沉淀成独立 Skill，集中存放：</p>
+    <table class="tbl"><thead><tr><th>Skill</th><th>数据源</th><th>用途</th><th>优先级</th></tr></thead><tbody>
+      <tr><td><code>connector-finance</code></td><td>财务系统 API / 导出表</td><td>拉取三张表、预算台账</td><td><span class="tag t-must">P0 必须</span></td></tr>
+      <tr><td><code>connector-crm</code></td><td>CRM API</td><td>订单、客户、退货、复购</td><td><span class="tag t-must">P0 必须</span></td></tr>
+      <tr><td><code>connector-erp</code></td><td>ERP API / 库存快照</td><td>采购成本、库存周转、履约时效</td><td><span class="tag t-rec">P1 推荐</span></td></tr>
+      <tr><td><code>connector-market-signal</code></td><td>外部行情/汇率/指数</td><td>销售预测的市场信号输入</td><td><span class="tag t-opt">P2 可选</span></td></tr>
+    </tbody></table>
+<pre><span class="c"># 在集中 Skill 库新建连接器（不写进虾目录）</span>
+<span class="cmd"><span class="pmt">$</span> cd workspace/skills</span>
+<span class="cmd"><span class="pmt">$</span> openclaw skill new connector-finance --source finance-api</span>
+<span class="cmd"><span class="pmt">$</span> openclaw skill grant connector-finance --to i01,a02</span></pre>
+    <div class="callout warn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.2"/></svg></span><div><b>安全边界</b>：API Key / 数据库密码不进任何 Markdown，统一放 <code>.openclaw/secrets</code>，由运行时注入。遵循八卷·卷六《自动化治理边界》：没有边界就没有安全。</div></div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline" class="anchor">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">5</span><span>每日数据聚合与清洗</span></h2>
+    <p class="lead">这一步直接来自 a02 的「周报生成 SOP · Step 1」（见其 <code>AGENTS.md</code>）。我们把它改造成每日自动触发的数据管线。</p>
+    <h4>5.1 五步清洗流程（对标 a02 工作流）</h4>
+    <div class="step"><div class="sno">1</div><div class="body"><h4>采集汇总</h4><p>向 d01/e01/f01/g01/i01 发采集请求；六源到位才继续，缺漏则标记并催促。</p></div></div>
+    <div class="step"><div class="sno">2</div><div class="body"><h4>完整性校验</h4><p>逐源校验行数、主键唯一性、必填项。</p></div></div>
+    <div class="step"><div class="sno">3</div><div class="body"><h4>口径标准化</h4><p>统一币种、时区（Asia/Shanghai）、单位、会计期间。<b>这是最容易出错的环节</b>。</p></div></div>
+    <div class="step"><div class="sno">4</div><div class="body"><h4>异常初筛</h4><p>与上一周期对比，波动 &gt; 20% 的指标标记「待分析」。</p></div></div>
+    <div class="step"><div class="sno">5</div><div class="body"><h4>落湖归档</h4><p>产出标准化数据汇总表 + 异常指标初筛清单，写入 <code>data/</code> 并归档。</p></div></div>
+    <h4>5.2 用 Heartbeat 每日触发</h4>
+    <p style="color:var(--ink2)">在 a02 的 <code>HEARTBEAT.md</code> 写入每日 08:00 触发的 cron（八卷·卷三·模块6）：</p>
+<pre><span class="c"># a02 / HEARTBEAT.md</span>
+- <span class="k">cron</span>: <span class="s">"0 8 * * *"</span>
+  <span class="k">job</span>: data-aggregation
+  <span class="k">on_fail</span>: notify(P1, feishu)   <span class="c"># 管线失败即报警</span>
+  <span class="k">circuit_breaker</span>: <span class="s">连续 2 天失败则熔断并上报 i01</span></pre>
+    <div class="callout ok"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span><div><b>最佳实践</b>：把清洗结果做幂等：同一日重复跑结果一致，避免补数时把历史改坏。</div></div>
+    <div class="callout danger"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span><div><b>常见坑</b>：跨币种汇总时，用结算日汇率还是订单日汇率，必须固定一种并写进口径文档，否则同比会失真。</div></div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="anchor" style="background:var(--bg)">
+  <div class="wrap">
+    <h2 class="h"><span class="num">6</span><span>收入 / 成本 / 利润看板（同比 + 环比）</span></h2>
+    <p class="lead">a02 在华为时的成名作是「一页纸经营罗盘」，把 80 页 PPT 压成 15 页。这里我们把它做成实时看板：上半页核心指标，下半页异常归因。</p>
+    <div class="dash">
+      <div class="head">
+        <div class="t">📊 经营罗盘 · 2026-06（日更）</div>
+        <div class="f"><span class="seg on">本月</span><span class="seg">上月</span><span class="seg">本季</span><span class="seg">本年</span></div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="lab">营业收入</div><div class="val">¥3,842k</div><div class="ch dn">▲ 12.4% MoM · ▲ 8.1% YoY</div></div>
+        <div class="kpi"><div class="lab">成本</div><div class="val">¥2,910k</div><div class="ch up">▲ 15.7% MoM · ▲ 6.2% YoY</div></div>
+        <div class="kpi"><div class="lab">毛利</div><div class="val">¥932k</div><div class="ch up">▲ 2.1% MoM · ▲ 14.3% YoY</div></div>
+        <div class="kpi"><div class="lab">毛利率</div><div class="val">24.3%</div><div class="ch dn">▼ 2.5pp MoM · ▲ 1.3pp YoY</div></div>
+      </div>
+      <div class="leg"><span><i style="background:#555"></i>上月</span><span><i style="background:var(--yellow)"></i>本月</span></div>
+      <div class="chart chartwrap">
+        <div class="bar prev" style="height:52%"><small>1月</small></div><div class="bar curr" style="height:58%"></div>
+        <div class="bar prev" style="height:60%"></div><div class="bar curr" style="height:66%"><small>2月</small></div>
+        <div class="bar prev" style="height:68%"></div><div class="bar curr" style="height:72%"><small>3月</small></div>
+        <div class="bar prev" style="height:64%"></div><div class="bar curr" style="height:70%"><small>4月</small></div>
+        <div class="bar prev" style="height:72%"></div><div class="bar curr" style="height:78%"><small>5月</small></div>
+        <div class="bar prev" style="height:78%"></div><div class="bar curr" style="height:88%"><small>6月</small></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="card"><h4>同比（YoY）怎么看</h4><p>剔除季节性的「真增长」。与去年同期比，看 <b>结构性变化</b>，例如品类升级、客户结构迁移。</p></div>
+      <div class="card"><h4>环比（MoM）怎么看</h4><p>看「最近做对了什么 / 做错了什么」。连续 2 周同向 = 趋势信号；连续 3 周 = 趋势确认（a02 趋势分级）。</p></div>
+    </div>
+    <div class="callout info"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 21L21 3"/><path d="M7 21V15"/></svg></span><div><b>方法学溯源</b>：看板指标选择遵循 skills 库中 <code>kpi-dashboard-design</code> 的 6 标准：可衡量 / 可影响 / 有基准 / 够敏感 / 不被游戏 / 够简单。</div></div>
+  </div>
+</section>
+
+<!-- BUDGET -->
+<section id="budget" class="anchor">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">7</span><span>预算偏差追踪与 &gt; 5% 预警</span></h2>
+    <p class="lead">a02 的核心 KPI 之一：<b>预算偏差率 ≤ 15%</b>。本手册进一步把「单科目超 5%」设为自动告警阈值，把事后分析变成事前拦截。</p>
+    <h4>7.1 预警示例（推送到飞书群）</h4>
+    <div class="alert red">
+      <div class="e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></div>
+      <div class="m"><b>P0 · 物流成本预算偏差 -7.3%</b><br><span style="font-size:13px;opacity:.85">实际 ¥486k vs 预算 ¥450k · 触发：超 5% 阈值 · 归因候选：海运涨价 + 退货反件增加</span></div>
+      <div class="t">08:14<br>由 a02</div>
+    </div>
+    <div class="alert">
+      <div class="e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></div>
+      <div class="m"><b>P1 · 投放费用环比 +21%</b><br><span style="font-size:13px;opacity:.85">连续 2 周上行，标记为趋势信号，建议复核 ROI</span></div>
+      <div class="t">08:14</div>
+    </div>
+    <h4>7.2 偏差判定逻辑</h4>
+<pre><span class="k">deviation</span> = (实际 - 预算) / 预算
+<span class="k">if</span> abs(deviation) &gt; <span class="s">0.05</span>:
+    notify(<span class="s">"P0/P1"</span>, feishu)          <span class="c"># 主通道</span>
+    open_remedy_ticket(<span class="s">"预算偏差整改单"</span>) <span class="c"># 卷六·模块4 整改单</span></pre>
+    <div class="callout warn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 17v4M15 17v4"/></svg></span><div><b>治理闭环</b>：超 5% 不仅要告警，还要按八卷·卷六开「整改单」；没有纠偏就没有进化。整改单要写明：偏差科目、金额、根因假设、责任人、整改时限。</div></div>
+  </div>
+</section>
+
+<!-- FORECAST -->
+<section id="forecast" class="anchor" style="background:var(--bg)">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">8</span><span>销售预测：历史 · 季节 · 市场信号</span></h2>
+    <p class="lead">a02 在华为建立的「区域量价分解模型」= 出货量 × ASP × 区域系数 × 渠道系数。我们把它升级为三因子预测。</p>
+    <div class="grid g3">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div><h4>历史趋势</h4><p>移动平均 + 同比基数，锚定基线。</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-8 8-9 0 4 3 5 5 6 0 5-3 9-6 10z"/><path d="M11 20v-6"/></svg></div><h4>季节因子</h4><p>旺季系数、促销日、节假日修正。</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><h4>市场信号</h4><p>汇率、品类指数、竞品动态（b01 情报）。</p></div>
+    </div>
+    <h4>8.1 预测公式（简化版）</h4>
+<pre><span class="c"># 预测下月销售额</span>
+forecast = baseline(<span class="k">历史3月加权</span>) × season_factor(月份)
+        × market_signal(<span class="k">汇率/指数</span>) × confidence</pre>
+    <div class="callout ok"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span><div><b>最佳实践</b>：永远给预测配 <b>置信区间</b>（如 ±8%）和 <b>回测准确率</b>。光给一个数字的分析师不是分析师，是算命先生。</div></div>
+    <div class="callout warn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></span><div><b>需进一步探索</b>：市场信号权重目前为经验值，建议积累 2–3 个季度数据后用回归重新校准。</div></div>
+  </div>
+</section>
+
+<!-- DIAGNOSE -->
+<section id="diagnose" class="anchor">
+  <div class="wrap">
+    <h2 class="h"><span class="num">9</span><span>盈利模型自动诊断</span></h2>
+    <p class="lead">不是堆数字，是回答「接下来该做什么」。系统自动跑一遍盈利归因，定位「谁在赚钱、谁在流血」。</p>
+    <table class="tbl"><thead><tr><th>维度</th><th>诊断问题</th><th>输出</th></tr></thead><tbody>
+      <tr><td>品类</td><td>哪个品类毛利最高 / 最低？</td><td>毛利瀑布图 + 排名</td></tr>
+      <tr><td>渠道</td><td>哪个渠道 ROI 为正？获客成本 vs LTV</td><td>渠道盈亏表</td></tr>
+      <tr><td>客户</td><td>新客 vs 老客利润贡献？复购率走向？</td><td>队列分析（cohort）</td></tr>
+      <tr><td>成本</td><td>成本结构里哪一项异常上升？</td><td>成本归因树</td></tr>
+      <tr><td>现金</td><td>回款是否健康？渠道库存是否压货？</td><td>经营性现金流预警</td></tr>
+    </tbody></table>
+    <p class="muted" style="font-size:13px;margin-top:-4px">能力支撑来自 skills 库：<code>business-analyst</code> · <code>financial-analyst</code> · <code>data-storytelling</code> · <code>thinking-nate-silver</code>。</p>
+    <div class="callout info"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/></svg></span><div><b>关键原则（来自 a02 的 SOUL）</b>：「营收不等于回款，回款不等于健康。」诊断必须穿透到现金流，而不是停在利润表。</div></div>
+  </div>
+</section>
+
+<!-- REPORT -->
+<section id="report" class="anchor" style="background:var(--bg)">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">10</span><span>分析报告：结论与建议，而非数字</span></h2>
+    <p class="lead">养虾人（CEO 凌霄）的汇报偏好：<b>金字塔式：结论 → 理由 → 背景；给选项而非给问题；A/B 方案 + 推荐</b>。报告必须照此排版。</p>
+    <h4>10.1 标准报告骨架</h4>
+<pre><span class="k"># 月度经营分析报告 · 2026-06</span>
+<span class="c">## ① 结论（一句话）</span>
+本月营收达标但利润承压，物流成本是主要拖累，建议 Q3 启动物流商重新议价。
+
+<span class="c">## ② 核心指标（看板摘要，≤6 项）</span>
+营收 ¥3,842k（MoM +12.4%）｜毛利 ¥932k（MoM +2.1%）｜毛利率 24.3%（▼2.5pp）
+
+<span class="c">## ③ 异常归因（谁在拖累 / 谁在拉动）</span>
+- 🔴 物流成本超预算 7.3% → 根因：海运涨价 + 退货反件
+- 🟢 品类 A 毛利率提升 3pp → 拉动：产品结构升级
+
+<span class="c">## ④ 预测与建议（A/B + 推荐）</span>
+- 方案 A：维持现状，预计 7 月毛利率 23.5%
+- 方案 B：切换物流商 + 优化退货流程，预计 25.8% ✅ 推荐
+- 决策时限：7 月 5 日前
+
+<span class="c">## ⑤ 附录（明细数据 / 三证验真链接）</span></pre>
+    <div class="callout ok"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span><div><b>三证验真</b>（卷六·模块3）：每个关键结论附 <b>截图 / 日志 / 数据</b> 三证链接。没有证据就不是完成。</div></div>
+    <div class="callout warn"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 9v5"/><circle cx="12" cy="17.5" r=".6" fill="currentColor"/></svg></span><div><b>常见坑</b>：报告不要用「可能、大概、或许」。拿不准的标为「需进一步探索」，并给探索路径。</div></div>
+  </div>
+</section>
+
+<!-- NLQ -->
+<section id="nlq" class="anchor">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">11</span><span>自然语言问答</span></h2>
+    <p class="lead">系统必须能直接回答这类问题：</p>
+    <div class="chat">
+      <div class="bubble q"><div class="who">🙋 CEO 凌霄</div>上个月哪条产品线利润增长最高？</div>
+      <div class="bubble a"><div class="who">🦞 a02 经营分析师</div>
+        <b>品类 A（智能音箱）</b>，毛利环比 <b>+34.2%</b>，是上月最高增长。<br><br>
+        <b>理由</b>：① 产品结构升级，高配款占比从 28% → 41%；② 促销集中在毛利更高的 SKU；③ 物流单价因体量议价下降 4%。<br><br>
+        <b>建议</b>：7 月可把广告预算向品类 A 倾斜 15%，预计再拉动毛利 +2pp。<br>
+        <span style="font-size:12.5px;opacity:.85">📎 数据出处：CRM 订单 + 财务三张表（三证已附）</span>
+      </div>
+    </div>
+    <h4>11.1 问答如何实现</h4>
+    <ul class="check">
+      <li>自然语言 → 结构化查询（基于已清洗数据湖的 schema）</li>
+      <li>结果 → 经 a02 的「金字塔汇报」模板包装成结论 + 理由 + 建议</li>
+      <li>每个回答必须带 <b>数据出处</b>（三证），拒绝无来源数字</li>
+      <li>拿不准时触发 <b>让位协议</b>：转交 i01 财务核验再回复</li>
+    </ul>
+    <div class="callout info"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a6 6 0 0 1 10-4l2 2"/><path d="M17 4v4h-4"/><path d="M21 12a6 6 0 0 1-10 4l-2-2"/><path d="M7 20v-4h4"/></svg></span><div><b>让位协议</b>（卷七·模块4）：不抢答比能回答更重要。涉及财务口径的问题，a02 让位给 i01。</div></div>
+  </div>
+</section>
+
+<!-- CHECKLIST -->
+<section id="checklist" class="anchor last" style="background:var(--bg)">
+  <div class="wrap" style="max-width:900px">
+    <h2 class="h"><span class="num">12</span><span>收尾清单与快速参考</span></h2>
+    <p class="lead">把整条闭环压缩成一张可勾选的清单，作为「每日体检」与「新人交接」之用。</p>
+    <h4>🅰 环境与训练门禁</h4>
+    <ul class="check">
+      <li>已读《硅基生命手册》八卷（尤其卷二/三/四/六）</li>
+      <li>已读《蓝血军团最佳实践手册 v4.0》（重启协议锚点）</li>
+      <li>OpenClaw 已安装，工作区骨架与 v4.0 一致</li>
+      <li>SHARED/USER.md 与 SHARED/TOOLS.md 已配置（单源真理）</li>
+      <li>a02 / i01 的 7 件套通过 <code>verify</code>，无多余文件</li>
+    </ul>
+    <h4>🅱 闭环任务</h4>
+    <ul class="check">
+      <li>飞书 + Telegram 双通道接入，P0/P1/P2 路由已配置</li>
+      <li>财务 / CRM / ERP 连接器封装为 Skill，集中存放</li>
+      <li>每日 08:00 数据管线心跳已就绪，含熔断</li>
+      <li>收入/成本/利润看板含同比 + 环比</li>
+      <li>预算偏差 &gt; 5% 自动告警 + 开整改单</li>
+      <li>销售预测含置信区间与回测</li>
+      <li>盈利诊断覆盖品类/渠道/客户/成本/现金</li>
+      <li>报告按金字塔结构 + 三证验真</li>
+      <li>自然语言问答带数据出处 + 让位协议</li>
+    </ul>
+    <h4>🅲 常见坑速查</h4>
+    <table class="tbl"><thead><tr><th>坑</th><th>后果</th><th>对策</th></tr></thead><tbody>
+      <tr><td>Skill 散落虾目录</td><td>Token 浪费、版本失控</td><td>集中 <code>workspace/skills/</code>，只引不载</td></tr>
+      <tr><td>跳过两份前置文档</td><td>人格漂移、格式混乱</td><td>门禁拦截，未读不开工</td></tr>
+      <tr><td>汇率口径不统一</td><td>同比失真</td><td>固定一种口径并写入文档</td></tr>
+      <tr><td>预警只告警不开单</td><td>问题反复</td><td>强制开整改单（卷六）</td></tr>
+      <tr><td>报告用「可能/大概」</td><td>决策不可靠</td><td>标「需进一步探索」+ 路径</td></tr>
+      <tr><td>API Key 写进 Markdown</td><td>安全风险</td><td>放 <code>.openclaw/secrets</code>，运行时注入</td></tr>
+    </tbody></table>
+    <div class="callout ok" style="margin-top:22px"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4"/><path d="M4 4h12l-2 3 2 3H4"/></svg></span><div><b>完成标志</b>：当 CEO 在飞书问「上个月哪条产品线利润增长最高？」，a02 能在 4 小时内给出带三证的结论 + 建议，并自动把异常开成整改单，这就是一次合格的闭环龙虾任务。</div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <h4>🦞 OpenClaw 龙虾工坊 · 标准化作业手册 v1.0</h4>
+      <div>主角：a02 经营分析师 + i01 财务 ｜ 编制：大脑 / 底盘小队</div>
+      <div>方法学底座：《硅基生命手册》八卷 + 《蓝血军团最佳实践手册 v4.0》</div>
+    </div>
+    <div>
+      <div><span class="kbadge">单源真理</span> SHARED/USER.md · SHARED/TOOLS.md</div>
+      <div style="margin-top:6px"><span class="kbadge">治理闭环</span> 任务卡 → 验收口径 → 三证验真 → 整改单</div>
+      <div style="margin-top:8px;opacity:.7">本手册为操作指南；方法学细节以 references/ 下原文为准。</div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
